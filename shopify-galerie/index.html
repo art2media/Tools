@@ -1,0 +1,489 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shopify Galerie Konfigurator</title>
+<style>
+  :root{
+    --bg:#f4f5f7; --card:#fff; --ink:#1c2024; --muted:#6b7280; --line:#e3e6ea;
+    --accent:#2f6fed; --accent-ink:#fff; --ok:#137a4b; --warn:#b4490d; --err:#c0263a;
+    --chip:#eef1f6; --radius:12px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#15171b; --card:#1e2127; --ink:#e7e9ec; --muted:#9aa3af; --line:#2c313a;
+      --accent:#5b8dff; --chip:#272c35; }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:15px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+  .wrap{max-width:940px;margin:0 auto;padding:24px 16px 80px}
+  header h1{margin:0 0 4px;font-size:24px}
+  header .sub{margin:0 0 20px;color:var(--muted)}
+  code{background:var(--chip);padding:1px 5px;border-radius:5px;font-size:.9em}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    padding:18px;margin:0 0 16px}
+  .card h2{margin:0 0 6px;font-size:17px;display:flex;align-items:center;gap:9px}
+  .badge{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;
+    background:var(--accent);color:var(--accent-ink);font-size:13px;font-weight:700}
+  .hint{margin:0 0 14px;color:var(--muted);font-size:13.5px}
+  input,textarea{font:inherit;color:inherit;background:var(--card);border:1px solid var(--line);
+    border-radius:8px;padding:7px 9px}
+  input:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:-1px;border-color:transparent}
+  textarea{width:100%;resize:vertical;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px}
+  .btn{cursor:pointer;border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);
+    border-radius:8px;padding:8px 14px;font:inherit;font-weight:600}
+  .btn:hover{filter:brightness(1.06)}
+  .btn.ghost{background:transparent;color:var(--accent)}
+  .btn.mini{padding:3px 8px;font-size:13px;border-color:var(--line);background:var(--chip);color:var(--ink);font-weight:500}
+  .btn.mini:hover{border-color:var(--accent)}
+
+  /* Optionen */
+  .opt{border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:10px}
+  .opt-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .opt-head .opt-name{flex:1;min-width:160px;font-weight:600}
+  .opt-include{display:flex;align-items:center;gap:5px;color:var(--muted);font-size:13px;white-space:nowrap}
+  .opt-del{margin-left:auto}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;align-items:center}
+  .chip{display:inline-flex;align-items:center;background:var(--chip);border:1px solid var(--line);
+    border-radius:999px;overflow:hidden}
+  .chip .chip-tog{border:0;background:transparent;color:var(--ink);cursor:pointer;padding:4px 4px 4px 11px;font:inherit;font-size:13px}
+  .chip .chip-del{border:0;background:transparent;color:var(--muted);cursor:pointer;padding:4px 9px 4px 4px;font-size:14px;line-height:1}
+  .chip.on{background:color-mix(in srgb,var(--accent) 16%, var(--card));border-color:var(--accent)}
+  .chip.on .chip-tog{color:var(--accent);font-weight:600}
+  .chip.off .chip-tog{text-decoration:line-through;opacity:.55}
+  .val-add{width:150px;font-size:13px;padding:4px 9px;border-radius:999px}
+  .defopt{display:block;margin-top:14px;color:var(--muted);font-size:13px}
+  .defopt input{width:160px;margin-left:8px}
+
+  /* Erzeugen */
+  .genrow{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:12px}
+  .genrow input{width:80px}
+  .genprev{color:var(--muted);font-size:14px}
+  .genbtns{display:flex;gap:10px}
+
+  /* Regeln */
+  .rule{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:9px 10px;
+    border:1px solid var(--line);border-radius:9px;margin-bottom:8px}
+  .rule.bad{border-color:var(--err)}
+  .rnum{color:var(--muted);text-align:center;font-size:13px;min-width:16px}
+  .rcond{flex:1 1 240px;min-width:160px;font-family:ui-monospace,Menlo,monospace;font-size:13px}
+  .rule label{display:inline-flex;align-items:center;gap:5px;color:var(--muted);font-size:13px;white-space:nowrap}
+  .rcount{width:52px}
+  .rmanual{width:84px}
+  .rrange{color:var(--accent);font-size:12.5px;white-space:nowrap;margin-left:6px}
+  .rmove{display:inline-flex;gap:3px;margin-left:auto}
+  .rule button{cursor:pointer;border:1px solid var(--line);background:var(--chip);color:var(--ink);
+    border-radius:6px;padding:4px 8px;font-size:13px;line-height:1}
+  .rule button:hover{border-color:var(--accent)}
+
+  /* Ausgabe */
+  #output{background:var(--bg)}
+  .outbtns{display:flex;align-items:center;gap:12px;margin-top:10px}
+  .copymsg{color:var(--ok);font-size:13px}
+  .warnings{margin-top:12px;font-size:13.5px}
+  .warnings .w-ok{color:var(--ok)}
+  .warnings ul{margin:6px 0 0;padding-left:18px}
+  .warnings li{color:var(--warn)}
+  .warnings li.e{color:var(--err)}
+
+  details.help{color:var(--muted)}
+  details.help summary{cursor:pointer;font-weight:600;color:var(--ink)}
+  details.help table{border-collapse:collapse;margin:10px 0;font-size:13.5px}
+  details.help td{border:1px solid var(--line);padding:5px 9px}
+  details.help li{margin:4px 0}
+  details.help code{font-size:12.5px}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <header>
+    <h1>Shopify Galerie Konfigurator</h1>
+    <p class="sub">Baut &amp; pflegt den <code>_Galerie</code>-String. Bild-Nummern werden automatisch fortlaufend vergeben – feste Indizes können ergänzt werden.</p>
+  </header>
+
+  <section class="card">
+    <h2><span class="badge">1</span> Optionen-Vorlage</h2>
+    <p class="hint">Optionen einmal anlegen (Name + Werte). Wert-Chip <b>klicken</b> = für die Kombinationen ein-/ausschalten, <b>×</b> = löschen. „einbeziehen" steuert, ob die Option in Schritt&nbsp;2 verwendet wird.</p>
+    <div id="optionsList"></div>
+    <button id="addOption" class="btn ghost">+ Option</button>
+    <label class="defopt">Standard-Option für Werte ohne „Name="&nbsp;(nur beim Import des alten Formats):
+      <input id="defaultOption" value="Größe"></label>
+  </section>
+
+  <section class="card">
+    <h2><span class="badge">2</span> Kombinationen erzeugen</h2>
+    <p class="hint">Erzeugt automatisch <b>alle Kombinationen</b> der eingeschalteten Optionen &amp; Werte – und nummeriert die Bilder fortlaufend durch.</p>
+    <div class="genrow">
+      <label>Bilder pro Kombination <input type="number" id="imgPerCombo" min="0" value="2"></label>
+      <span id="genPreview" class="genprev">—</span>
+    </div>
+    <div class="genbtns">
+      <button id="genReplace" class="btn">Regeln ersetzen</button>
+      <button id="genAppend" class="btn ghost">anhängen</button>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2><span class="badge">3</span> Regeln</h2>
+    <p class="hint">Jede Regel = Bedingungen (mit <code>&amp;</code> verknüpft) + Anzahl Bilder. Die <b>Reihenfolge</b> bestimmt die automatischen Bild-Nummern – ordne deine dynamischen Galeriebilder genauso.<br>
+    <b>+ feste:</b> optionale feste Bild-Nummern (z. B. Bilder am Galerie-<b>Ende</b>), die zusätzlich gezeigt werden. Mehrere Regeln dürfen dieselbe feste Nummer nutzen; steht sie bei mind. einer Regel, blendet der Galerie-Code sie bei allen anderen automatisch aus.</p>
+    <div id="rulesList"></div>
+    <button id="addRule" class="btn ghost">+ Regel</button>
+  </section>
+
+  <section class="card">
+    <h2><span class="badge">4</span> Ergebnis-String</h2>
+    <textarea id="output" readonly rows="4"></textarea>
+    <div class="outbtns">
+      <button id="copyBtn" class="btn">📋 Kopieren</button>
+      <span id="copyMsg" class="copymsg"></span>
+    </div>
+    <div id="warnings" class="warnings"></div>
+  </section>
+
+  <section class="card">
+    <h2><span class="badge">5</span> String importieren</h2>
+    <p class="hint">Bestehenden <code>_Galerie</code>-String einfügen → wird oben in die Felder geladen (vorhandene Vorlage wird ergänzt, nicht ersetzt). Feste Indizes werden automatisch erkannt (alles, was die fortlaufende Nummerierung überschreitet).</p>
+    <textarea id="importText" rows="4" placeholder="Größe=40x40cm&Farbe=Hellgrau:1,2;Farbe=Weiß&Deine Ecken=Runde Ecken:21;…"></textarea>
+    <button id="importBtn" class="btn">↑ Übernehmen</button>
+  </section>
+
+  <details class="card help">
+    <summary>Format &amp; Tipps</summary>
+    <table>
+      <tr><td><code>;</code></td><td>trennt Regeln (Bildgruppen)</td></tr>
+      <tr><td><code>:</code></td><td>trennt Bedingungen von den Bild-Nummern</td></tr>
+      <tr><td><code>&amp;</code></td><td>verknüpft Bedingungen mit UND</td></tr>
+      <tr><td><code>=</code></td><td>trennt Optionsname von Wert</td></tr>
+      <tr><td><code>,</code></td><td>trennt Bild-Nummern</td></tr>
+    </table>
+    <ul>
+      <li>Eine Regel zeigt ihre Bilder, wenn <b>alle</b> Bedingungen zur Auswahl passen. Mehrere passende Regeln werden vereinigt.</li>
+      <li><b>Feste Bilder am Ende der Galerie:</b> Galerie so anordnen → erst die dynamischen Bilder (in Regel-Reihenfolge), dann die festen. Feste werden über ihre absolute Position referenziert.</li>
+      <li><b>Beispiel „Größe egal":</b> ein weißer Absorber mit runden Ecken (Bild 21) für jede Größe → eine Regel <code>Farbe=Weiß&amp;Deine Ecken=Runde Ecken</code>, Bilder&nbsp;=&nbsp;0, feste&nbsp;=&nbsp;21.</li>
+      <li>Options­namen und Werte müssen <b>exakt</b> wie im Konfigurator heißen (inkl. Umlaute, „°", Leerzeichen).</li>
+      <li>In Namen/Werten <b>nicht</b> erlaubt: <code>; : , = &amp;</code> (das sind die Trennzeichen).</li>
+      <li>Leerzeichen um die Trennzeichen sind egal – das lesende Skript trimmt sie.</li>
+    </ul>
+  </details>
+</main>
+
+<script>
+(() => {
+  "use strict";
+
+  // ---------- State ----------
+  const state = {
+    defaultOption: "Größe",
+    options: [],   // {name, values:[{value, active}], include}
+    rules: [],     // {cond, count, manual}   manual = roher String fester Indizes, z. B. "21,22"
+  };
+
+  // ---------- Helpers ----------
+  const $ = (s) => document.querySelector(s);
+  const esc = (s) => String(s)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
+  // feste Indizes parsen: positive Ganzzahlen, dedupliziert
+  function parseManual(s) {
+    return String(s || "").split(",").map((x) => parseInt(x.trim(), 10))
+      .filter((n) => Number.isFinite(n) && n > 0)
+      .filter((n, i, a) => a.indexOf(n) === i);
+  }
+
+  // String -> Regeln [{cond, count, manual}]
+  // Auto-Indizes = die fortlaufend ab dem laufenden Zähler vorhandenen Nummern; der Rest gilt als "fest".
+  function parseConfigString(str) {
+    let idx = 1;
+    return String(str || "").split(";").map((g) => g.trim()).filter(Boolean).map((group) => {
+      const sep = group.indexOf(":");
+      if (sep === -1) return null;
+      const cond = group.slice(0, sep).trim();
+      const nums = group.slice(sep + 1).split(",").map((s) => parseInt(s.trim(), 10)).filter(Number.isFinite);
+      let count = 0;
+      while (nums.includes(idx + count)) count++;          // führender, fortlaufender Block = automatisch
+      const auto = new Set();
+      for (let k = 0; k < count; k++) auto.add(idx + k);
+      const manual = nums.filter((n) => !auto.has(n));     // alles andere = fest
+      idx += count;
+      return { cond, count, manual: manual.join(",") };
+    }).filter(Boolean);
+  }
+
+  // Bedingungs-String -> [{name, value}]
+  function parseConditions(condStr) {
+    return String(condStr || "").split("&").map((t) => t.trim()).filter(Boolean).map((t) => {
+      const eq = t.indexOf("=");
+      const name = eq === -1 ? state.defaultOption : t.slice(0, eq).trim();
+      const value = eq === -1 ? t.trim() : t.slice(eq + 1).trim();
+      return { name, value };
+    });
+  }
+
+  // Regeln -> String (automatische Nummern fortlaufend + feste Indizes angehängt)
+  function buildString(rules) {
+    let idx = 1;
+    return rules.map((r) => {
+      const n = Math.max(0, parseInt(r.count, 10) || 0);
+      const auto = [];
+      for (let k = 0; k < n; k++) auto.push(idx++);
+      const manual = parseManual(r.manual).filter((m) => !auto.includes(m));
+      return r.cond.trim() + ":" + auto.concat(manual).join(",");
+    }).join(";");
+  }
+
+  // Pro Regel: Startindex, Anzahl Auto-Bilder, feste Indizes (für Anzeige & Prüfung)
+  function ruleIndexInfo(rules) {
+    let idx = 1;
+    return rules.map((r) => {
+      const count = Math.max(0, parseInt(r.count, 10) || 0);
+      const start = idx; idx += count;
+      return { start, count, manual: parseManual(r.manual) };
+    });
+  }
+  function rangeLabel(info) {
+    const parts = [];
+    if (info.count === 1) parts.push("Bild " + info.start);
+    else if (info.count > 1) parts.push("Bilder " + info.start + "–" + (info.start + info.count - 1));
+    if (info.manual.length) parts.push("fest " + info.manual.join(","));
+    return parts.length ? "→ " + parts.join(" + ") : "→ —";
+  }
+
+  // kartesisches Produkt; erstes Array = äußerste Schleife
+  function cartesian(arrays) {
+    return arrays.reduce((acc, arr) => acc.flatMap((a) => arr.map((x) => [...a, x])), [[]]);
+  }
+
+  // Optionen aus Regeln ableiten und in die Vorlage einmischen.
+  // Alles, was im importierten String vorkommt, MUSS danach aktiv/einbezogen sein,
+  // sonst würde "Regeln ersetzen" diese Werte still verwerfen.
+  function mergeOptionsFromRules(rules) {
+    rules.forEach((r) => parseConditions(r.cond).forEach(({ name, value }) => {
+      if (!name) return;
+      let opt = state.options.find((o) => o.name.trim() === name.trim());
+      if (!opt) { opt = { name, values: [], include: true }; state.options.push(opt); }
+      opt.include = true; // Option kommt im String vor -> einbeziehen
+      if (value === "") return;
+      const existing = opt.values.find((v) => v.value === value);
+      if (existing) existing.active = true;            // vorhandenen Wert aktivieren (Bugfix)
+      else opt.values.push({ value, active: true });   // fehlenden Wert ergänzen
+    }));
+  }
+
+  // ---------- Render: Optionen ----------
+  function renderOptions() {
+    const host = $("#optionsList");
+    host.innerHTML = state.options.map((o, oi) => `
+      <div class="opt" data-oi="${oi}">
+        <div class="opt-head">
+          <label class="opt-include"><input type="checkbox" class="opt-include-cb" ${o.include ? "checked" : ""}> einbeziehen</label>
+          <input class="opt-name" value="${esc(o.name)}" placeholder="Optionsname, z. B. Größe">
+          <button class="btn mini opt-del" title="Option löschen">🗑</button>
+        </div>
+        <div class="chips">
+          ${o.values.map((v, vi) => `
+            <span class="chip ${v.active ? "on" : "off"}" data-vi="${vi}">
+              <button class="chip-tog" title="für Kombinationen ein/aus">${esc(v.value)}</button>
+              <button class="chip-del" title="Wert löschen">×</button>
+            </span>`).join("")}
+          <input class="val-add" placeholder="+ Wert (Enter)">
+        </div>
+      </div>`).join("");
+    updateOutput();
+  }
+
+  // ---------- Render: Regeln ----------
+  function renderRules() {
+    const host = $("#rulesList");
+    if (!state.rules.length) { host.innerHTML = `<p class="hint" style="margin:0">Noch keine Regeln – in Schritt 2 erzeugen oder „+ Regel".</p>`; updateOutput(); return; }
+    host.innerHTML = state.rules.map((r, ri) => `
+      <div class="rule" data-ri="${ri}">
+        <span class="rnum">${ri + 1}</span>
+        <input class="rcond" value="${esc(r.cond)}" placeholder="z. B. Größe=40x40cm&amp;Farbe=Hellgrau">
+        <label>Bilder <input type="number" class="rcount" min="0" value="${esc(r.count)}"></label>
+        <label title="Feste Bild-Nummern, die zusätzlich gezeigt werden (z. B. Bilder am Galerie-Ende). Mehrfach &amp; geteilt nutzbar.">+ feste <input class="rmanual" value="${esc(r.manual || "")}" placeholder="z. B. 21"></label>
+        <span class="rrange"></span>
+        <span class="rmove">
+          <button class="rup" title="hoch">↑</button>
+          <button class="rdown" title="runter">↓</button>
+          <button class="rdel" title="Regel löschen">🗑</button>
+        </span>
+      </div>`).join("");
+    updateOutput();
+  }
+
+  // ---------- Live-Ausgabe + Vorschau + Warnungen ----------
+  function updateGenPreview() {
+    const incl = state.options.filter((o) => o.include && o.name.trim());
+    const counts = incl.map((o) => o.values.filter((v) => v.active).length).filter((c) => c > 0);
+    const per = Math.max(0, parseInt($("#imgPerCombo").value, 10) || 0);
+    const el = $("#genPreview");
+    if (!counts.length) { el.textContent = "—  (keine Option mit aktiven Werten eingeschaltet)"; return; }
+    const combos = counts.reduce((a, b) => a * b, 1);
+    el.textContent = counts.join(" × ") + " = " + combos + " Kombination" + (combos === 1 ? "" : "en") + " → " + (combos * per) + " dynamische Bilder";
+  }
+
+  function updateOutput() {
+    $("#output").value = buildString(state.rules);
+
+    const info = ruleIndexInfo(state.rules);
+    document.querySelectorAll("#rulesList .rule").forEach((row) => {
+      const ri = +row.dataset.ri;
+      const lbl = row.querySelector(".rrange");
+      if (lbl && info[ri]) lbl.textContent = rangeLabel(info[ri]);
+    });
+
+    updateGenPreview();
+    renderWarnings(info);
+  }
+
+  function renderWarnings(info) {
+    const issues = [];
+    const N = info.reduce((s, x) => s + x.count, 0); // Anzahl dynamischer (automatischer) Bilder
+
+    // Vorlage prüfen
+    state.options.forEach((o) => {
+      if (o.name && /[;:,=&]/.test(o.name)) issues.push({ e: true, t: `Optionsname „${o.name}" enthält ein Trennzeichen (; : , = &).` });
+      o.values.forEach((v) => { if (/[;:,=&]/.test(v.value)) issues.push({ e: true, t: `Wert „${v.value}" enthält ein Trennzeichen (; : , = &).` }); });
+    });
+
+    // Regeln prüfen
+    const seen = new Map();
+    state.rules.forEach((r, ri) => {
+      const row = document.querySelector(`#rulesList .rule[data-ri="${ri}"]`);
+      let bad = false;
+      if (!r.cond.trim()) { issues.push({ e: true, t: `Regel ${ri + 1}: keine Bedingung.` }); bad = true; }
+      if (/[;:,]/.test(r.cond)) { issues.push({ e: true, t: `Regel ${ri + 1}: Bedingung enthält ; : oder , (gehört nicht hinein).` }); bad = true; }
+      parseConditions(r.cond).forEach((c) => {
+        if (!c.value) { issues.push({ t: `Regel ${ri + 1}: Bedingung „${c.name}" hat keinen Wert.` }); bad = true; }
+      });
+
+      // feste Indizes
+      const rawM = String(r.manual || "").split(",").map((s) => s.trim()).filter(Boolean);
+      const badTok = rawM.filter((t) => !/^\d+$/.test(t) || parseInt(t, 10) < 1);
+      if (badTok.length) { issues.push({ e: true, t: `Regel ${ri + 1}: feste Indizes „${badTok.join(", ")}" sind keine gültigen Bild-Nummern.` }); bad = true; }
+      info[ri].manual.forEach((m) => {
+        if (m <= N) issues.push({ t: `Regel ${ri + 1}: fester Index ${m} liegt im automatischen Bereich (1–${N}) – bewusst so gewollt?` });
+      });
+
+      if (info[ri].count <= 0 && info[ri].manual.length === 0 && r.cond.trim()) issues.push({ t: `Regel ${ri + 1}: keine Bilder (0 automatische, keine festen) – Regel wirkt nicht.` });
+
+      const key = parseConditions(r.cond).map((c) => c.name.trim() + "=" + c.value.trim()).sort().join("&");
+      if (r.cond.trim()) {
+        if (seen.has(key)) issues.push({ t: `Regel ${ri + 1}: gleiche Bedingungen wie Regel ${seen.get(key) + 1}.` });
+        else seen.set(key, ri);
+      }
+      if (row) row.classList.toggle("bad", bad);
+    });
+
+    const host = $("#warnings");
+    if (!issues.length) { host.innerHTML = `<span class="w-ok">✓ keine Probleme gefunden</span>`; return; }
+    host.innerHTML = "<b>Hinweise:</b><ul>" + issues.map((i) => `<li class="${i.e ? "e" : ""}">${esc(i.t)}</li>`).join("") + "</ul>";
+  }
+
+  // ---------- Aktionen ----------
+  function generate(replace) {
+    const incl = state.options
+      .filter((o) => o.include && o.name.trim())
+      .map((o) => ({ name: o.name.trim(), values: o.values.filter((v) => v.active).map((v) => v.value) }))
+      .filter((o) => o.values.length);
+    if (!incl.length) { alert("Keine Option mit aktiven Werten eingeschaltet."); return; }
+    const per = Math.max(0, parseInt($("#imgPerCombo").value, 10) || 0);
+    const combos = cartesian(incl.map((o) => o.values.map((v) => ({ name: o.name, value: v }))));
+    const newRules = combos.map((combo) => ({
+      cond: combo.map((c) => c.name + "=" + c.value).join("&"),
+      count: per,
+      manual: "",
+    }));
+    state.rules = replace ? newRules : state.rules.concat(newRules);
+    renderRules();
+  }
+
+  function importString() {
+    const raw = $("#importText").value.trim();
+    if (!raw) { alert("Bitte zuerst einen String einfügen."); return; }
+    const rules = parseConfigString(raw);
+    if (!rules.length) { alert("Konnte keine Regeln erkennen. Format: Name=Wert&Name=Wert:1,2;…"); return; }
+    state.rules = rules;
+    mergeOptionsFromRules(rules);   // Vorlage ergänzen
+    renderOptions();
+    renderRules();
+    $("#importText").value = "";
+  }
+
+  // ---------- Event-Wiring (Delegation auf stabile Container) ----------
+  $("#optionsList").addEventListener("input", (e) => {
+    const opt = e.target.closest(".opt"); if (!opt) return;
+    const oi = +opt.dataset.oi;
+    if (e.target.classList.contains("opt-name")) { state.options[oi].name = e.target.value; updateOutput(); }
+  });
+  $("#optionsList").addEventListener("change", (e) => {
+    const opt = e.target.closest(".opt"); if (!opt) return;
+    const oi = +opt.dataset.oi;
+    if (e.target.classList.contains("opt-include-cb")) { state.options[oi].include = e.target.checked; updateGenPreview(); }
+  });
+  $("#optionsList").addEventListener("click", (e) => {
+    const opt = e.target.closest(".opt"); if (!opt) return;
+    const oi = +opt.dataset.oi;
+    if (e.target.classList.contains("opt-del")) { state.options.splice(oi, 1); renderOptions(); return; }
+    if (e.target.classList.contains("chip-tog")) {
+      const vi = +e.target.closest(".chip").dataset.vi;
+      state.options[oi].values[vi].active = !state.options[oi].values[vi].active;
+      e.target.closest(".chip").classList.toggle("on"); e.target.closest(".chip").classList.toggle("off");
+      updateGenPreview(); return;
+    }
+    if (e.target.classList.contains("chip-del")) {
+      const vi = +e.target.closest(".chip").dataset.vi;
+      state.options[oi].values.splice(vi, 1); renderOptions(); return;
+    }
+  });
+  $("#optionsList").addEventListener("keydown", (e) => {
+    if (e.key !== "Enter" || !e.target.classList.contains("val-add")) return;
+    e.preventDefault();
+    const opt = e.target.closest(".opt"); const oi = +opt.dataset.oi;
+    const val = e.target.value.trim();
+    if (val) state.options[oi].values.push({ value: val, active: true });
+    renderOptions();
+    const fresh = document.querySelector(`.opt[data-oi="${oi}"] .val-add`); if (fresh) fresh.focus();
+  });
+
+  $("#rulesList").addEventListener("input", (e) => {
+    const rule = e.target.closest(".rule"); if (!rule) return;
+    const ri = +rule.dataset.ri;
+    if (e.target.classList.contains("rcond")) { state.rules[ri].cond = e.target.value; updateOutput(); }
+    else if (e.target.classList.contains("rcount")) { state.rules[ri].count = e.target.value; updateOutput(); }
+    else if (e.target.classList.contains("rmanual")) { state.rules[ri].manual = e.target.value; updateOutput(); }
+  });
+  $("#rulesList").addEventListener("click", (e) => {
+    const rule = e.target.closest(".rule"); if (!rule) return;
+    const ri = +rule.dataset.ri;
+    if (e.target.classList.contains("rdel")) { state.rules.splice(ri, 1); renderRules(); }
+    else if (e.target.classList.contains("rup") && ri > 0) { [state.rules[ri - 1], state.rules[ri]] = [state.rules[ri], state.rules[ri - 1]]; renderRules(); }
+    else if (e.target.classList.contains("rdown") && ri < state.rules.length - 1) { [state.rules[ri + 1], state.rules[ri]] = [state.rules[ri], state.rules[ri + 1]]; renderRules(); }
+  });
+
+  $("#addOption").addEventListener("click", () => { state.options.push({ name: "", values: [], include: true }); renderOptions(); });
+  $("#addRule").addEventListener("click", () => { state.rules.push({ cond: "", count: 2, manual: "" }); renderRules(); });
+  $("#imgPerCombo").addEventListener("input", updateGenPreview);
+  $("#defaultOption").addEventListener("input", (e) => { state.defaultOption = e.target.value.trim() || "Größe"; });
+  $("#genReplace").addEventListener("click", () => generate(true));
+  $("#genAppend").addEventListener("click", () => generate(false));
+  $("#importBtn").addEventListener("click", importString);
+  $("#copyBtn").addEventListener("click", async () => {
+    try { await navigator.clipboard.writeText($("#output").value); }
+    catch (_) { $("#output").select(); document.execCommand("copy"); }
+    const m = $("#copyMsg"); m.textContent = "Kopiert!"; setTimeout(() => (m.textContent = ""), 1600);
+  });
+
+  // ---------- Beispiel-Vorlage (löschbar) ----------
+  state.options = [
+    { name: "Größe", include: true, values: ["40x40cm", "50x50cm", "59x59cm", "70x70cm", "79x79cm"].map((v) => ({ value: v, active: true })) },
+    { name: "Farbe", include: true, values: [{ value: "Hellgrau", active: true }, { value: "Weiß", active: false }] },
+  ];
+  renderOptions();
+  renderRules();
+})();
+</script>
+</body>
+</html>
