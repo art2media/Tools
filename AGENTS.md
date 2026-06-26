@@ -3,15 +3,15 @@
 Sammlung interner, statischer **HTML/JS-Tools**. Ein Unterverzeichnis pro Tool, jeweils mit `index.html`.
 
 ## Hosting / Veröffentlichung
-- Repo: **privat** (`github.com/art2media/Tools`).
-- Ziel: GitHub Pages unter Domain **`tools.art2.media`**, ein Tool je Pfad → `tools.art2.media/<tool>/`.
-- ⚠️ **Plan-Hürde:** Pages aus einem **privaten** Repo erfordert **GitHub Team**. Die Org ist aktuell auf **Free** → Pages geht dort nur aus **öffentlichen** Repos. Solange Free: entweder Repo öffentlich schalten **oder** auf Team upgraden.
-- Hinweis: Bei rein **clientseitigen** Tools ist der Quellcode im veröffentlichten HTML ohnehin einsehbar (View Source). Ein privates Repo verbirgt dann nur Commit-Historie und noch **nicht veröffentlichte** Tools.
+- Repo: **öffentlich** (`github.com/art2media/Tools`) — bewusst öffentlich, damit GitHub Pages auf dem **Free**-Plan veröffentlicht (Pages aus einem privaten Repo bräuchte **Team**).
+- **Live** über GitHub Pages unter Domain **`tools.art2.media`**, ein Tool je Pfad → `tools.art2.media/<tool>/`.
+- **`.nojekyll`** im Root schaltet Jekyll ab → Dateien werden 1:1 ausgeliefert; **`index.html` im Root** ist die Startseite (sonst baut Jekyll aus der README einen verlinkten „Tools"-Auto-Header).
+- Hinweis: Bei rein **clientseitigen** Tools ist der Quellcode im veröffentlichten HTML ohnehin einsehbar (View Source).
 
 ## Konventionen
-- Jedes Tool ist **eigenständig**, ohne externe Abhängigkeiten und **ohne Build-Schritt** (damit Pages per „Deploy from a branch" ohne Actions ausliefert).
+- Jedes Tool ist **eigenständig**, ohne externe Abhängigkeiten und **ohne Build-Schritt** (Pages „Deploy from a branch", kein Actions-Build).
 - Tool-Ordner: `kebab-case`; Einstieg immer `index.html`.
-- Optional später: eine `index.html` im Repo-Root als Tool-Übersicht.
+- Repo-Root: `index.html` (Tool-Übersicht) + `.nojekyll`, dazu `CLAUDE.md`→`@AGENTS.md`, `AGENTS.md`, `README.md`. Neues Tool → in der `index.html`-Übersicht **und** der `README.md`-Tabelle ergänzen.
 
 ## Tools
 
