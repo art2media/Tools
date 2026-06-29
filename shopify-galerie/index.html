@@ -39,7 +39,7 @@
   .btn.mini:hover{border-color:var(--accent)}
 
   /* Optionen */
-  .opt{border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:10px}
+  .opt{border:1px solid var(--line);border-left:4px solid hsl(var(--h,210) 60% 50%);border-radius:10px;padding:12px;margin-bottom:10px}
   .opt-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
   .opt-head .opt-name{flex:1;min-width:160px;font-weight:600}
   .opt-include{display:flex;align-items:center;gap:5px;color:var(--muted);font-size:13px;white-space:nowrap}
@@ -49,8 +49,8 @@
     border-radius:999px;overflow:hidden}
   .chip .chip-tog{border:0;background:transparent;color:var(--ink);cursor:pointer;padding:4px 4px 4px 11px;font:inherit;font-size:13px}
   .chip .chip-del{border:0;background:transparent;color:var(--muted);cursor:pointer;padding:4px 9px 4px 4px;font-size:14px;line-height:1}
-  .chip.on{background:color-mix(in srgb,var(--accent) 16%, var(--card));border-color:var(--accent)}
-  .chip.on .chip-tog{color:var(--accent);font-weight:600}
+  .chip.on{background:hsl(var(--h,210) 60% 95%);border-color:hsl(var(--h,210) 50% 75%)}
+  .chip.on .chip-tog{color:hsl(var(--h,210) 52% 34%);font-weight:600}
   .chip.off .chip-tog{text-decoration:line-through;opacity:.55}
   .val-add{width:150px;font-size:13px;padding:4px 9px;border-radius:999px}
   .defopt{display:block;margin-top:14px;color:var(--muted);font-size:13px}
@@ -63,19 +63,35 @@
   .genbtns{display:flex;gap:10px}
 
   /* Regeln */
-  .rule{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:9px 10px;
-    border:1px solid var(--line);border-radius:9px;margin-bottom:8px}
+  .rule{border:1px solid var(--line);border-radius:10px;padding:9px 11px;margin-bottom:8px;background:var(--card)}
   .rule.bad{border-color:var(--err)}
-  .rnum{color:var(--muted);text-align:center;font-size:13px;min-width:16px}
-  .rcond{flex:1 1 240px;min-width:160px;font-family:ui-monospace,Menlo,monospace;font-size:13px}
-  .rule label{display:inline-flex;align-items:center;gap:5px;color:var(--muted);font-size:13px;white-space:nowrap}
-  .rcount{width:52px}
-  .rmanual{width:84px}
-  .rrange{color:var(--accent);font-size:12.5px;white-space:nowrap;margin-left:6px}
-  .rmove{display:inline-flex;gap:3px;margin-left:auto}
-  .rule button{cursor:pointer;border:1px solid var(--line);background:var(--chip);color:var(--ink);
+  .rule.dragging{opacity:.45}
+  .rule.drop-before{box-shadow:0 -3px 0 -1px var(--accent)}
+  .rule.drop-after{box-shadow:0 3px 0 -1px var(--accent)}
+  .rule-top{display:flex;align-items:center;gap:8px}
+  .drag-handle{cursor:grab;color:var(--muted);font-size:16px;line-height:1;user-select:none;padding:2px 4px;border-radius:5px}
+  .drag-handle:hover{background:var(--chip);color:var(--ink)}
+  .drag-handle:active{cursor:grabbing}
+  .rnum{color:var(--muted);font-size:13px;min-width:18px;text-align:center}
+  .cond-chips{display:flex;flex-wrap:wrap;gap:5px;flex:1}
+  .cond-chip{font-family:ui-monospace,Menlo,monospace;font-size:12.5px;font-weight:600;
+    padding:3px 9px;border-radius:999px;white-space:nowrap;
+    background:hsl(var(--h,210) 60% 95%);border:1px solid hsl(var(--h,210) 50% 78%);color:hsl(var(--h,210) 52% 34%)}
+  .cond-empty{color:var(--muted);font-style:italic;font-size:13px}
+  .rule-bottom{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-top:9px;padding-left:30px;
+    color:var(--muted);font-size:13px}
+  .rule-bottom label{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+  .rcount{width:56px}
+  .rmanual{width:96px}
+  .rrange{color:var(--accent);font-size:12.5px;white-space:nowrap}
+  .rdel{margin-left:auto;cursor:pointer;border:1px solid var(--line);background:var(--chip);color:var(--ink);
     border-radius:6px;padding:4px 8px;font-size:13px;line-height:1}
-  .rule button:hover{border-color:var(--accent)}
+  .rdel:hover{border-color:var(--err)}
+  @media (prefers-color-scheme: dark){
+    .chip.on{background:hsl(var(--h,210) 45% 17%);border-color:hsl(var(--h,210) 38% 34%)}
+    .chip.on .chip-tog{color:hsl(var(--h,210) 70% 76%)}
+    .cond-chip{background:hsl(var(--h,210) 42% 18%);border-color:hsl(var(--h,210) 35% 34%);color:hsl(var(--h,210) 70% 78%)}
+  }
 
   /* Ausgabe */
   #output{background:var(--bg)}
@@ -126,7 +142,7 @@
 
   <section class="card">
     <h2><span class="badge">3</span> Regeln</h2>
-    <p class="hint">Jede Regel = Bedingungen (mit <code>&amp;</code> verknüpft) + Anzahl Bilder. Die <b>Reihenfolge</b> bestimmt die automatischen Bild-Nummern – ordne deine dynamischen Galeriebilder genauso.<br>
+    <p class="hint">Bedingungen je Regel als <b>farbige Chips</b> (eine Farbe pro Option – wie in der Vorlage). Mit dem Griff <b>⠿ ziehen zum Sortieren</b>; die <b>Reihenfolge</b> bestimmt die automatischen Bild-Nummern – ordne deine dynamischen Galeriebilder genauso.<br>
     <b>+ feste:</b> optionale feste Bild-Nummern (z. B. Bilder am Galerie-<b>Ende</b>), die zusätzlich gezeigt werden. Mehrere Regeln dürfen dieselbe feste Nummer nutzen; steht sie bei mind. einer Regel, blendet der Galerie-Code sie bei allen anderen automatisch aus.</p>
     <div id="rulesList"></div>
     <button id="addRule" class="btn ghost">+ Regel</button>
@@ -190,6 +206,32 @@
     return String(s || "").split(",").map((x) => parseInt(x.trim(), 10))
       .filter((n) => Number.isFinite(n) && n > 0)
       .filter((n, i, a) => a.indexOf(n) === i);
+  }
+
+  // Stabile Farbe (Hue) je Optionsname – in Vorlage und Regel-Chips identisch
+  const HUES = [210, 150, 28, 275, 340, 190, 95, 310, 50, 168];
+  function hueFor(name) {
+    const s = String(name || "");
+    let h = 5381;
+    for (let i = 0; i < s.length; i++) h = ((h * 33) ^ s.charCodeAt(i)) >>> 0;
+    return HUES[h % HUES.length];
+  }
+  // Farbe (Hue) je Option: gleichmäßig übers Spektrum verteilt anhand der Position in der
+  // Vorlage -> in Vorlage UND Regel-Chips identisch und gut unterscheidbar.
+  function optionHue(name) {
+    const uniq = [];
+    for (const o of state.options) { const n = o.name.trim(); if (n && !uniq.includes(n)) uniq.push(n); }
+    const i = uniq.indexOf(String(name).trim());
+    if (i === -1) return hueFor(name);          // Bedingung ohne Palette-Option -> stabiler Hash
+    return Math.round((210 + i * 360 / Math.max(uniq.length, 1)) % 360);
+  }
+  // cond-String -> rohe Tokens mit Optionsname (für farbige, nicht editierbare Chips)
+  function condTokens(cond) {
+    return String(cond || "").split("&").map((t) => t.trim()).filter(Boolean).map((t) => {
+      const eq = t.indexOf("=");
+      const name = eq === -1 ? state.defaultOption : t.slice(0, eq).trim();
+      return { text: t, name };
+    });
   }
 
   // String -> Regeln [{cond, count, manual}]
@@ -275,7 +317,7 @@
   function renderOptions() {
     const host = $("#optionsList");
     host.innerHTML = state.options.map((o, oi) => `
-      <div class="opt" data-oi="${oi}">
+      <div class="opt" data-oi="${oi}" style="--h:${optionHue(o.name)}">
         <div class="opt-head">
           <label class="opt-include"><input type="checkbox" class="opt-include-cb" ${o.include ? "checked" : ""}> einbeziehen</label>
           <input class="opt-name" value="${esc(o.name)}" placeholder="Optionsname, z. B. Größe">
@@ -297,19 +339,24 @@
   function renderRules() {
     const host = $("#rulesList");
     if (!state.rules.length) { host.innerHTML = `<p class="hint" style="margin:0">Noch keine Regeln – in Schritt 2 erzeugen oder „+ Regel".</p>`; updateOutput(); return; }
-    host.innerHTML = state.rules.map((r, ri) => `
+    host.innerHTML = state.rules.map((r, ri) => {
+      const chips = condTokens(r.cond)
+        .map((c) => `<span class="cond-chip" style="--h:${optionHue(c.name)}">${esc(c.text)}</span>`).join("");
+      return `
       <div class="rule" data-ri="${ri}">
-        <span class="rnum">${ri + 1}</span>
-        <input class="rcond" value="${esc(r.cond)}" placeholder="z. B. Größe=40x40cm&amp;Farbe=Hellgrau">
-        <label>Bilder <input type="number" class="rcount" min="0" value="${esc(r.count)}"></label>
-        <label title="Feste Bild-Nummern, die zusätzlich gezeigt werden (z. B. Bilder am Galerie-Ende). Mehrfach &amp; geteilt nutzbar.">+ feste <input class="rmanual" value="${esc(r.manual || "")}" placeholder="z. B. 21"></label>
-        <span class="rrange"></span>
-        <span class="rmove">
-          <button class="rup" title="hoch">↑</button>
-          <button class="rdown" title="runter">↓</button>
+        <div class="rule-top">
+          <span class="drag-handle" draggable="true" title="ziehen zum Sortieren">⠿</span>
+          <span class="rnum">${ri + 1}</span>
+          <div class="cond-chips">${chips || '<span class="cond-empty">(keine Bedingung)</span>'}</div>
           <button class="rdel" title="Regel löschen">🗑</button>
-        </span>
-      </div>`).join("");
+        </div>
+        <div class="rule-bottom">
+          <label>Bilder <input type="number" class="rcount" min="0" value="${esc(r.count)}"></label>
+          <label title="Feste Bild-Nummern, die zusätzlich gezeigt werden (z. B. am Galerie-Ende). Mehrfach &amp; geteilt nutzbar.">+ feste <input class="rmanual" value="${esc(r.manual || "")}" placeholder="z. B. 21"></label>
+          <span class="rrange"></span>
+        </div>
+      </div>`;
+    }).join("");
     updateOutput();
   }
 
@@ -465,16 +512,61 @@
   $("#rulesList").addEventListener("input", (e) => {
     const rule = e.target.closest(".rule"); if (!rule) return;
     const ri = +rule.dataset.ri;
-    if (e.target.classList.contains("rcond")) { state.rules[ri].cond = e.target.value; updateOutput(); }
-    else if (e.target.classList.contains("rcount")) { state.rules[ri].count = e.target.value; updateOutput(); }
+    if (e.target.classList.contains("rcount")) { state.rules[ri].count = e.target.value; updateOutput(); }
     else if (e.target.classList.contains("rmanual")) { state.rules[ri].manual = e.target.value; updateOutput(); }
   });
   $("#rulesList").addEventListener("click", (e) => {
+    if (!e.target.classList.contains("rdel")) return;
     const rule = e.target.closest(".rule"); if (!rule) return;
-    const ri = +rule.dataset.ri;
-    if (e.target.classList.contains("rdel")) { state.rules.splice(ri, 1); renderRules(); }
-    else if (e.target.classList.contains("rup") && ri > 0) { [state.rules[ri - 1], state.rules[ri]] = [state.rules[ri], state.rules[ri - 1]]; renderRules(); }
-    else if (e.target.classList.contains("rdown") && ri < state.rules.length - 1) { [state.rules[ri + 1], state.rules[ri]] = [state.rules[ri], state.rules[ri + 1]]; renderRules(); }
+    state.rules.splice(+rule.dataset.ri, 1); renderRules();
+  });
+
+  // ---------- Drag & Drop: Regeln sortieren (Griff ⠿) ----------
+  let dragFrom = null;
+  function clearDropMarks() {
+    document.querySelectorAll("#rulesList .rule.drop-before, #rulesList .rule.drop-after")
+      .forEach((r) => r.classList.remove("drop-before", "drop-after"));
+  }
+  function dropTargetInfo(e) {
+    const rule = e.target.closest(".rule");
+    if (!rule) return null;
+    const rect = rule.getBoundingClientRect();
+    return { ri: +rule.dataset.ri, rule, after: (e.clientY - rect.top) > rect.height / 2 };
+  }
+  $("#rulesList").addEventListener("dragstart", (e) => {
+    const handle = e.target.closest(".drag-handle");
+    const rule = e.target.closest(".rule");
+    if (!handle || !rule) { e.preventDefault(); return; }
+    dragFrom = +rule.dataset.ri;
+    rule.classList.add("dragging");
+    e.dataTransfer.effectAllowed = "move";
+    try { e.dataTransfer.setData("text/plain", String(dragFrom)); } catch (_) {}
+  });
+  $("#rulesList").addEventListener("dragover", (e) => {
+    if (dragFrom === null) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    clearDropMarks();
+    const t = dropTargetInfo(e);
+    if (t && t.ri !== dragFrom) t.rule.classList.add(t.after ? "drop-after" : "drop-before");
+  });
+  $("#rulesList").addEventListener("drop", (e) => {
+    if (dragFrom === null) return;
+    e.preventDefault();
+    const t = dropTargetInfo(e);
+    clearDropMarks();
+    if (t && t.ri !== dragFrom) {
+      const [moved] = state.rules.splice(dragFrom, 1);
+      let dst = t.ri - (dragFrom < t.ri ? 1 : 0) + (t.after ? 1 : 0);
+      dst = Math.max(0, Math.min(state.rules.length, dst));
+      state.rules.splice(dst, 0, moved);
+      renderRules();
+    }
+    dragFrom = null;
+  });
+  $("#rulesList").addEventListener("dragend", () => {
+    dragFrom = null; clearDropMarks();
+    document.querySelectorAll("#rulesList .rule.dragging").forEach((r) => r.classList.remove("dragging"));
   });
 
   $("#addOption").addEventListener("click", () => { state.options.push({ name: "", values: [], include: true }); renderOptions(); });
