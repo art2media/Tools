@@ -35,23 +35,20 @@
     border-radius:8px;padding:8px 14px;font:inherit;font-weight:600}
   .btn:hover{filter:brightness(1.06)}
   .btn.ghost{background:transparent;color:var(--accent)}
-  .btn.mini{padding:3px 8px;font-size:13px;border-color:var(--line);background:var(--chip);color:var(--ink);font-weight:500}
-  .btn.mini:hover{border-color:var(--accent)}
+  .btn.mini{padding:5px 11px;font-size:13px;border-color:var(--accent);background:transparent;color:var(--accent);font-weight:600}
+  .btn.mini:hover{filter:brightness(1.06)}
 
   /* Optionen */
   .opt{border:1px solid var(--line);border-left:4px solid hsl(var(--h,210) 60% 50%);border-radius:10px;padding:12px;margin-bottom:10px}
   .opt-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
   .opt-head .opt-name{flex:1;min-width:160px;font-weight:600}
-  .opt-include{display:flex;align-items:center;gap:5px;color:var(--muted);font-size:13px;white-space:nowrap}
   .opt-del{margin-left:auto}
   .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;align-items:center}
-  .chip{display:inline-flex;align-items:center;background:var(--chip);border:1px solid var(--line);
-    border-radius:999px;overflow:hidden}
-  .chip .chip-tog{border:0;background:transparent;color:var(--ink);cursor:pointer;padding:4px 4px 4px 11px;font:inherit;font-size:13px}
-  .chip .chip-del{border:0;background:transparent;color:var(--muted);cursor:pointer;padding:4px 9px 4px 4px;font-size:14px;line-height:1}
-  .chip.on{background:hsl(var(--h,210) 60% 95%);border-color:hsl(var(--h,210) 50% 75%)}
-  .chip.on .chip-tog{color:hsl(var(--h,210) 52% 34%);font-weight:600}
-  .chip.off .chip-tog{text-decoration:line-through;opacity:.55}
+  .chip{display:inline-flex;align-items:center;gap:3px;border-radius:999px;padding:3px 4px 3px 11px;
+    background:hsl(var(--h,210) 60% 95%);border:1px solid hsl(var(--h,210) 50% 78%)}
+  .chip .chip-val{font-size:13px;font-weight:600;color:hsl(var(--h,210) 52% 34%)}
+  .chip .chip-del{border:0;background:transparent;color:hsl(var(--h,210) 38% 48%);cursor:pointer;padding:0 6px 0 2px;font-size:14px;line-height:1}
+  .chip .chip-del:hover{color:var(--err)}
   .val-add{width:150px;font-size:13px;padding:4px 9px;border-radius:999px}
   .defopt{display:block;margin-top:14px;color:var(--muted);font-size:13px}
   .defopt input{width:160px;margin-left:8px}
@@ -61,6 +58,21 @@
   .genrow input{width:80px}
   .genprev{color:var(--muted);font-size:14px}
   .genbtns{display:flex;gap:10px}
+
+  /* Sortier-Leiste (Gruppieren nach) */
+  .sortbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px;
+    padding:10px 12px;border:1px dashed var(--line);border-radius:10px}
+  .sortbar-label{color:var(--muted);font-size:13px}
+  .sortbar-sub{opacity:.75}
+  .sort-chips{display:flex;flex-wrap:wrap;gap:6px;flex:1;min-width:160px}
+  .sort-chip{display:inline-flex;align-items:center;gap:5px;cursor:grab;user-select:none;
+    font-size:12.5px;font-weight:600;padding:4px 12px;border-radius:999px;
+    background:hsl(var(--h,210) 60% 95%);border:1px solid hsl(var(--h,210) 50% 78%);color:hsl(var(--h,210) 52% 34%)}
+  .sort-chip:active{cursor:grabbing}
+  .sort-chip.dragging{opacity:.45}
+  .sort-chip .sort-grip{opacity:.55;font-weight:400}
+  .sort-chip.drop-before{box-shadow:-3px 0 0 -1px var(--accent)}
+  .sort-chip.drop-after{box-shadow:3px 0 0 -1px var(--accent)}
 
   /* Regeln */
   .rule{border:1px solid var(--line);border-radius:10px;padding:9px 11px;margin-bottom:8px;background:var(--card)}
@@ -87,10 +99,12 @@
   .rdel{margin-left:auto;cursor:pointer;border:1px solid var(--line);background:var(--chip);color:var(--ink);
     border-radius:6px;padding:4px 8px;font-size:13px;line-height:1}
   .rdel:hover{border-color:var(--err)}
+
+  /* Farb-Chips im Dark Mode (Vorlage, Regeln, Sortier-Leiste) */
   @media (prefers-color-scheme: dark){
-    .chip.on{background:hsl(var(--h,210) 45% 17%);border-color:hsl(var(--h,210) 38% 34%)}
-    .chip.on .chip-tog{color:hsl(var(--h,210) 70% 76%)}
-    .cond-chip{background:hsl(var(--h,210) 42% 18%);border-color:hsl(var(--h,210) 35% 34%);color:hsl(var(--h,210) 70% 78%)}
+    .chip,.cond-chip,.sort-chip{background:hsl(var(--h,210) 42% 18%);border-color:hsl(var(--h,210) 35% 34%)}
+    .cond-chip,.sort-chip,.chip .chip-val{color:hsl(var(--h,210) 70% 78%)}
+    .chip .chip-del{color:hsl(var(--h,210) 45% 62%)}
   }
 
   /* Ausgabe */
@@ -120,7 +134,7 @@
 
   <section class="card">
     <h2><span class="badge">1</span> Optionen-Vorlage</h2>
-    <p class="hint">Optionen einmal anlegen (Name + Werte). Wert-Chip <b>klicken</b> = für die Kombinationen ein-/ausschalten, <b>×</b> = löschen. „einbeziehen" steuert, ob die Option in Schritt&nbsp;2 verwendet wird.</p>
+    <p class="hint">Optionen einmal anlegen: Name + Werte (Wert tippen &amp; <b>Enter</b>, <b>×</b> löscht). Die <b>Farbe</b> kennzeichnet die Option überall im Tool – in den Regel-Chips und in der Sortier-Leiste.</p>
     <div id="optionsList"></div>
     <button id="addOption" class="btn ghost">+ Option</button>
     <label class="defopt">Standard-Option für Werte ohne „Name="&nbsp;(nur beim Import des alten Formats):
@@ -129,7 +143,7 @@
 
   <section class="card">
     <h2><span class="badge">2</span> Kombinationen erzeugen</h2>
-    <p class="hint">Erzeugt automatisch <b>alle Kombinationen</b> der eingeschalteten Optionen &amp; Werte – und nummeriert die Bilder fortlaufend durch.</p>
+    <p class="hint">Erzeugt <b>alle Kombinationen</b> aller Optionen &amp; Werte – in der <b>Gruppierungs-Reihenfolge</b> (siehe Schritt&nbsp;3) – und nummeriert die Bilder fortlaufend durch.</p>
     <div class="genrow">
       <label>Bilder pro Kombination <input type="number" id="imgPerCombo" min="0" value="2"></label>
       <span id="genPreview" class="genprev">—</span>
@@ -142,8 +156,13 @@
 
   <section class="card">
     <h2><span class="badge">3</span> Regeln</h2>
-    <p class="hint">Bedingungen je Regel als <b>farbige Chips</b> (eine Farbe pro Option – wie in der Vorlage). Mit dem Griff <b>⠿ ziehen zum Sortieren</b>; die <b>Reihenfolge</b> bestimmt die automatischen Bild-Nummern – ordne deine dynamischen Galeriebilder genauso.<br>
-    <b>+ feste:</b> optionale feste Bild-Nummern (z. B. Bilder am Galerie-<b>Ende</b>), die zusätzlich gezeigt werden. Mehrere Regeln dürfen dieselbe feste Nummer nutzen; steht sie bei mind. einer Regel, blendet der Galerie-Code sie bei allen anderen automatisch aus.</p>
+    <p class="hint">Bedingungen je Regel als <b>farbige Chips</b> (eine Farbe pro Option). <b>Bulk-Sortierung:</b> Options-Chips unten in Prioritäts-Reihenfolge ziehen (links = äußerste Gruppe, ändert sich am langsamsten) und <b>„Regeln sortieren"</b> klicken. Danach einzelne Regeln am Griff <b>⠿</b> per Drag&amp;Drop feinjustieren. Die Reihenfolge bestimmt die automatischen Bild-Nummern.<br>
+    <b>+ feste:</b> optionale feste Bild-Nummern (z. B. am Galerie-<b>Ende</b>), die zusätzlich gezeigt werden; mehrere Regeln dürfen dieselbe nutzen.</p>
+    <div class="sortbar">
+      <span class="sortbar-label">Gruppieren nach <span class="sortbar-sub">(links = äußerste Gruppe)</span>:</span>
+      <div id="sortOrder" class="sort-chips"></div>
+      <button id="sortRules" class="btn mini">Regeln sortieren</button>
+    </div>
     <div id="rulesList"></div>
     <button id="addRule" class="btn ghost">+ Regel</button>
   </section>
@@ -161,7 +180,7 @@
   <section class="card">
     <h2><span class="badge">5</span> String importieren</h2>
     <p class="hint">Bestehenden <code>_Galerie</code>-String einfügen → wird oben in die Felder geladen (vorhandene Vorlage wird ergänzt, nicht ersetzt). Feste Indizes werden automatisch erkannt (alles, was die fortlaufende Nummerierung überschreitet). Ein umschließendes <code>return '…';</code> (Anführungszeichen, Semikolon) wird automatisch entfernt.</p>
-    <textarea id="importText" rows="4" placeholder="Größe=40x40cm&Farbe=Hellgrau:1,2;Farbe=Weiß&Deine Ecken=Runde Ecken:21;…"></textarea>
+    <textarea id="importText" rows="4" placeholder="Größe=40x40cm&Farbe=Hellgrau:1,2;Farbe=Weiß&Ecken=Runde Ecken:21;…"></textarea>
     <button id="importBtn" class="btn">↑ Übernehmen</button>
   </section>
 
@@ -176,11 +195,10 @@
     </table>
     <ul>
       <li>Eine Regel zeigt ihre Bilder, wenn <b>alle</b> Bedingungen zur Auswahl passen. Mehrere passende Regeln werden vereinigt.</li>
+      <li><b>Bulk-Sortierung</b> ordnet die Regeln wie ein verschachteltes Kombinations-Produkt: links in der Leiste = äußerste Gruppe. Innerhalb einer Option zählt die <b>Wert-Reihenfolge</b> der Vorlage.</li>
       <li><b>Feste Bilder am Ende der Galerie:</b> Galerie so anordnen → erst die dynamischen Bilder (in Regel-Reihenfolge), dann die festen. Feste werden über ihre absolute Position referenziert.</li>
-      <li><b>Beispiel „Größe egal":</b> ein weißer Absorber mit runden Ecken (Bild 21) für jede Größe → eine Regel <code>Farbe=Weiß&amp;Deine Ecken=Runde Ecken</code>, Bilder&nbsp;=&nbsp;0, feste&nbsp;=&nbsp;21.</li>
       <li>Options­namen und Werte müssen <b>exakt</b> wie im Konfigurator heißen (inkl. Umlaute, „°", Leerzeichen).</li>
       <li>In Namen/Werten <b>nicht</b> erlaubt: <code>; : , = &amp;</code> (das sind die Trennzeichen).</li>
-      <li>Leerzeichen um die Trennzeichen sind egal – das lesende Skript trimmt sie.</li>
     </ul>
   </details>
 </main>
@@ -192,8 +210,9 @@
   // ---------- State ----------
   const state = {
     defaultOption: "Größe",
-    options: [],   // {name, values:[{value, active}], include}
-    rules: [],     // {cond, count, manual}   manual = roher String fester Indizes, z. B. "21,22"
+    options: [],    // {name, values:[string]}
+    sortOrder: [],  // [optionName] – Gruppierungs-Priorität, außen -> innen
+    rules: [],      // {cond, count, manual}
   };
 
   // ---------- Helpers ----------
@@ -201,14 +220,13 @@
   const esc = (s) => String(s)
     .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
-  // feste Indizes parsen: positive Ganzzahlen, dedupliziert
   function parseManual(s) {
     return String(s || "").split(",").map((x) => parseInt(x.trim(), 10))
       .filter((n) => Number.isFinite(n) && n > 0)
       .filter((n, i, a) => a.indexOf(n) === i);
   }
 
-  // Stabile Farbe (Hue) je Optionsname – in Vorlage und Regel-Chips identisch
+  // Hash-Fallback-Farbe (für Bedingungen, deren Option nicht in der Vorlage steht)
   const HUES = [210, 150, 28, 275, 340, 190, 95, 310, 50, 168];
   function hueFor(name) {
     const s = String(name || "");
@@ -216,14 +234,18 @@
     for (let i = 0; i < s.length; i++) h = ((h * 33) ^ s.charCodeAt(i)) >>> 0;
     return HUES[h % HUES.length];
   }
-  // Farbe (Hue) je Option: gleichmäßig übers Spektrum verteilt anhand der Position in der
-  // Vorlage -> in Vorlage UND Regel-Chips identisch und gut unterscheidbar.
+  // Farbe (Hue) je Option: gleichmäßig übers Spektrum nach Position in der Vorlage
+  // -> in Vorlage, Regel-Chips UND Sortier-Leiste identisch und gut unterscheidbar.
+  function optionNames() {
+    const u = [];
+    for (const o of state.options) { const n = o.name.trim(); if (n && !u.includes(n)) u.push(n); }
+    return u;
+  }
   function optionHue(name) {
-    const uniq = [];
-    for (const o of state.options) { const n = o.name.trim(); if (n && !uniq.includes(n)) uniq.push(n); }
-    const i = uniq.indexOf(String(name).trim());
-    if (i === -1) return hueFor(name);          // Bedingung ohne Palette-Option -> stabiler Hash
-    return Math.round((210 + i * 360 / Math.max(uniq.length, 1)) % 360);
+    const u = optionNames();
+    const i = u.indexOf(String(name).trim());
+    if (i === -1) return hueFor(name);
+    return Math.round((210 + i * 360 / Math.max(u.length, 1)) % 360);
   }
   // cond-String -> rohe Tokens mit Optionsname (für farbige, nicht editierbare Chips)
   function condTokens(cond) {
@@ -234,8 +256,14 @@
     });
   }
 
-  // String -> Regeln [{cond, count, manual}]
-  // Auto-Indizes = die fortlaufend ab dem laufenden Zähler vorhandenen Nummern; der Rest gilt als "fest".
+  // Gruppierungs-Reihenfolge mit den aktuellen Optionsnamen abgleichen
+  function syncSortOrder() {
+    const names = optionNames();
+    state.sortOrder = state.sortOrder.filter((n) => names.includes(n));
+    names.forEach((n) => { if (!state.sortOrder.includes(n)) state.sortOrder.push(n); });
+  }
+
+  // String -> Regeln [{cond, count, manual}]; führender fortlaufender Block = automatisch, Rest = fest
   function parseConfigString(str) {
     let idx = 1;
     return String(str || "").split(";").map((g) => g.trim()).filter(Boolean).map((group) => {
@@ -244,16 +272,15 @@
       const cond = group.slice(0, sep).trim();
       const nums = group.slice(sep + 1).split(",").map((s) => parseInt(s.trim(), 10)).filter(Number.isFinite);
       let count = 0;
-      while (nums.includes(idx + count)) count++;          // führender, fortlaufender Block = automatisch
+      while (nums.includes(idx + count)) count++;
       const auto = new Set();
       for (let k = 0; k < count; k++) auto.add(idx + k);
-      const manual = nums.filter((n) => !auto.has(n));     // alles andere = fest
+      const manual = nums.filter((n) => !auto.has(n));
       idx += count;
       return { cond, count, manual: manual.join(",") };
     }).filter(Boolean);
   }
 
-  // Bedingungs-String -> [{name, value}]
   function parseConditions(condStr) {
     return String(condStr || "").split("&").map((t) => t.trim()).filter(Boolean).map((t) => {
       const eq = t.indexOf("=");
@@ -263,7 +290,6 @@
     });
   }
 
-  // Regeln -> String (automatische Nummern fortlaufend + feste Indizes angehängt)
   function buildString(rules) {
     let idx = 1;
     return rules.map((r) => {
@@ -275,7 +301,6 @@
     }).join(";");
   }
 
-  // Pro Regel: Startindex, Anzahl Auto-Bilder, feste Indizes (für Anzeige & Prüfung)
   function ruleIndexInfo(rules) {
     let idx = 1;
     return rules.map((r) => {
@@ -297,19 +322,13 @@
     return arrays.reduce((acc, arr) => acc.flatMap((a) => arr.map((x) => [...a, x])), [[]]);
   }
 
-  // Optionen aus Regeln ableiten und in die Vorlage einmischen.
-  // Alles, was im importierten String vorkommt, MUSS danach aktiv/einbezogen sein,
-  // sonst würde "Regeln ersetzen" diese Werte still verwerfen.
+  // Optionen aus importierten Regeln in die Vorlage einmischen (ergänzen)
   function mergeOptionsFromRules(rules) {
     rules.forEach((r) => parseConditions(r.cond).forEach(({ name, value }) => {
       if (!name) return;
       let opt = state.options.find((o) => o.name.trim() === name.trim());
-      if (!opt) { opt = { name, values: [], include: true }; state.options.push(opt); }
-      opt.include = true; // Option kommt im String vor -> einbeziehen
-      if (value === "") return;
-      const existing = opt.values.find((v) => v.value === value);
-      if (existing) existing.active = true;            // vorhandenen Wert aktivieren (Bugfix)
-      else opt.values.push({ value, active: true });   // fehlenden Wert ergänzen
+      if (!opt) { opt = { name, values: [] }; state.options.push(opt); }
+      if (value !== "" && !opt.values.includes(value)) opt.values.push(value);
     }));
   }
 
@@ -319,20 +338,31 @@
     host.innerHTML = state.options.map((o, oi) => `
       <div class="opt" data-oi="${oi}" style="--h:${optionHue(o.name)}">
         <div class="opt-head">
-          <label class="opt-include"><input type="checkbox" class="opt-include-cb" ${o.include ? "checked" : ""}> einbeziehen</label>
           <input class="opt-name" value="${esc(o.name)}" placeholder="Optionsname, z. B. Größe">
           <button class="btn mini opt-del" title="Option löschen">🗑</button>
         </div>
         <div class="chips">
           ${o.values.map((v, vi) => `
-            <span class="chip ${v.active ? "on" : "off"}" data-vi="${vi}">
-              <button class="chip-tog" title="für Kombinationen ein/aus">${esc(v.value)}</button>
+            <span class="chip" data-vi="${vi}">
+              <span class="chip-val">${esc(v)}</span>
               <button class="chip-del" title="Wert löschen">×</button>
             </span>`).join("")}
           <input class="val-add" placeholder="+ Wert (Enter)">
         </div>
       </div>`).join("");
+    renderSortBar();
     updateOutput();
+  }
+
+  // ---------- Render: Sortier-Leiste ----------
+  function renderSortBar() {
+    syncSortOrder();
+    const host = $("#sortOrder");
+    if (!state.sortOrder.length) { host.innerHTML = `<span class="cond-empty">(keine Optionen)</span>`; return; }
+    host.innerHTML = state.sortOrder.map((name, si) => `
+      <span class="sort-chip" data-si="${si}" draggable="true" style="--h:${optionHue(name)}">
+        <span class="sort-grip">⠿</span>${esc(name)}
+      </span>`).join("");
   }
 
   // ---------- Render: Regeln ----------
@@ -362,40 +392,38 @@
 
   // ---------- Live-Ausgabe + Vorschau + Warnungen ----------
   function updateGenPreview() {
-    const incl = state.options.filter((o) => o.include && o.name.trim());
-    const counts = incl.map((o) => o.values.filter((v) => v.active).length).filter((c) => c > 0);
+    syncSortOrder();
+    const counts = state.sortOrder
+      .map((name) => { const o = state.options.find((x) => x.name.trim() === name); return o ? o.values.length : 0; })
+      .filter((c) => c > 0);
     const per = Math.max(0, parseInt($("#imgPerCombo").value, 10) || 0);
     const el = $("#genPreview");
-    if (!counts.length) { el.textContent = "—  (keine Option mit aktiven Werten eingeschaltet)"; return; }
+    if (!counts.length) { el.textContent = "—  (keine Optionen mit Werten)"; return; }
     const combos = counts.reduce((a, b) => a * b, 1);
     el.textContent = counts.join(" × ") + " = " + combos + " Kombination" + (combos === 1 ? "" : "en") + " → " + (combos * per) + " dynamische Bilder";
   }
 
   function updateOutput() {
     $("#output").value = buildString(state.rules);
-
     const info = ruleIndexInfo(state.rules);
     document.querySelectorAll("#rulesList .rule").forEach((row) => {
       const ri = +row.dataset.ri;
       const lbl = row.querySelector(".rrange");
       if (lbl && info[ri]) lbl.textContent = rangeLabel(info[ri]);
     });
-
     updateGenPreview();
     renderWarnings(info);
   }
 
   function renderWarnings(info) {
     const issues = [];
-    const N = info.reduce((s, x) => s + x.count, 0); // Anzahl dynamischer (automatischer) Bilder
+    const N = info.reduce((s, x) => s + x.count, 0);
 
-    // Vorlage prüfen
     state.options.forEach((o) => {
       if (o.name && /[;:,=&]/.test(o.name)) issues.push({ e: true, t: `Optionsname „${o.name}" enthält ein Trennzeichen (; : , = &).` });
-      o.values.forEach((v) => { if (/[;:,=&]/.test(v.value)) issues.push({ e: true, t: `Wert „${v.value}" enthält ein Trennzeichen (; : , = &).` }); });
+      o.values.forEach((v) => { if (/[;:,=&]/.test(v)) issues.push({ e: true, t: `Wert „${v}" enthält ein Trennzeichen (; : , = &).` }); });
     });
 
-    // Regeln prüfen
     const seen = new Map();
     state.rules.forEach((r, ri) => {
       const row = document.querySelector(`#rulesList .rule[data-ri="${ri}"]`);
@@ -406,7 +434,6 @@
         if (!c.value) { issues.push({ t: `Regel ${ri + 1}: Bedingung „${c.name}" hat keinen Wert.` }); bad = true; }
       });
 
-      // feste Indizes
       const rawM = String(r.manual || "").split(",").map((s) => s.trim()).filter(Boolean);
       const badTok = rawM.filter((t) => !/^\d+$/.test(t) || parseInt(t, 10) < 1);
       if (badTok.length) { issues.push({ e: true, t: `Regel ${ri + 1}: feste Indizes „${badTok.join(", ")}" sind keine gültigen Bild-Nummern.` }); bad = true; }
@@ -431,13 +458,14 @@
 
   // ---------- Aktionen ----------
   function generate(replace) {
-    const incl = state.options
-      .filter((o) => o.include && o.name.trim())
-      .map((o) => ({ name: o.name.trim(), values: o.values.filter((v) => v.active).map((v) => v.value) }))
-      .filter((o) => o.values.length);
-    if (!incl.length) { alert("Keine Option mit aktiven Werten eingeschaltet."); return; }
+    syncSortOrder();
+    const opts = state.sortOrder
+      .map((name) => state.options.find((o) => o.name.trim() === name))
+      .filter((o) => o && o.values.length)
+      .map((o) => ({ name: o.name.trim(), values: o.values.slice() }));
+    if (!opts.length) { alert("Keine Option mit Werten angelegt."); return; }
     const per = Math.max(0, parseInt($("#imgPerCombo").value, 10) || 0);
-    const combos = cartesian(incl.map((o) => o.values.map((v) => ({ name: o.name, value: v }))));
+    const combos = cartesian(opts.map((o) => o.values.map((v) => ({ name: o.name, value: v }))));
     const newRules = combos.map((combo) => ({
       cond: combo.map((c) => c.name + "=" + c.value).join("&"),
       count: per,
@@ -447,17 +475,37 @@
     renderRules();
   }
 
-  // Import tolerant machen: ein umschließendes  return '…';  wird entfernt
-  // (führendes "return", umschließende ' " ` und abschließende Semikolons).
+  // Bestehende Regeln nach der Gruppierungs-Priorität sortieren (überschreibt die Reihenfolge,
+  // lässt Bild-Anzahl & feste Indizes je Regel unangetastet). Drag&Drop kann danach feinjustieren.
+  function sortRulesByPriority() {
+    if (!state.rules.length) return;
+    syncSortOrder();
+    const order = state.sortOrder.slice();
+    const valIndex = {};
+    state.options.forEach((o) => { const m = {}; o.values.forEach((v, i) => { m[v] = i; }); valIndex[o.name.trim()] = m; });
+    const BIG = Number.MAX_SAFE_INTEGER;
+    const keyFor = (rule) => {
+      const conds = {}; parseConditions(rule.cond).forEach((c) => { conds[c.name] = c.value; });
+      return order.map((opt) => {
+        if (!(opt in conds)) return BIG;                         // Option fehlt -> ans Ende dieser Ebene
+        const m = valIndex[opt]; const idx = m ? m[conds[opt]] : undefined;
+        return idx === undefined ? BIG - 1 : idx;                 // Wert nicht in Vorlage -> fast ans Ende
+      });
+    };
+    state.rules = state.rules
+      .map((r, i) => ({ r, i, k: keyFor(r) }))
+      .sort((a, b) => { for (let j = 0; j < a.k.length; j++) if (a.k[j] !== b.k[j]) return a.k[j] - b.k[j]; return a.i - b.i; })
+      .map((x) => x.r);
+    renderRules();
+  }
+
+  // Import tolerant: umschließendes  return '…';  entfernen
   function sanitizeImport(raw) {
     let s = String(raw).trim();
-    s = s.replace(/^return\b\s*/i, "");   // führendes "return"
-    s = s.replace(/;+\s*$/, "");          // abschließende Semikolons (JS-Statement-Ende)
+    s = s.replace(/^return\b\s*/i, "");
+    s = s.replace(/;+\s*$/, "");
     s = s.trim();
-    if (s.length >= 2) {                  // umschließende Anführungszeichen ' " ` entfernen
-      const q = s[0];
-      if ((q === "'" || q === '"' || q === "`") && s[s.length - 1] === q) s = s.slice(1, -1);
-    }
+    if (s.length >= 2) { const q = s[0]; if ((q === "'" || q === '"' || q === "`") && s[s.length - 1] === q) s = s.slice(1, -1); }
     return s.trim();
   }
 
@@ -467,7 +515,7 @@
     const rules = parseConfigString(raw);
     if (!rules.length) { alert("Konnte keine Regeln erkennen. Format: Name=Wert&Name=Wert:1,2;…"); return; }
     state.rules = rules;
-    mergeOptionsFromRules(rules);   // Vorlage ergänzen
+    mergeOptionsFromRules(rules);
     renderOptions();
     renderRules();
     $("#importText").value = "";
@@ -476,24 +524,12 @@
   // ---------- Event-Wiring (Delegation auf stabile Container) ----------
   $("#optionsList").addEventListener("input", (e) => {
     const opt = e.target.closest(".opt"); if (!opt) return;
-    const oi = +opt.dataset.oi;
-    if (e.target.classList.contains("opt-name")) { state.options[oi].name = e.target.value; updateOutput(); }
-  });
-  $("#optionsList").addEventListener("change", (e) => {
-    const opt = e.target.closest(".opt"); if (!opt) return;
-    const oi = +opt.dataset.oi;
-    if (e.target.classList.contains("opt-include-cb")) { state.options[oi].include = e.target.checked; updateGenPreview(); }
+    if (e.target.classList.contains("opt-name")) { state.options[+opt.dataset.oi].name = e.target.value; updateOutput(); }
   });
   $("#optionsList").addEventListener("click", (e) => {
     const opt = e.target.closest(".opt"); if (!opt) return;
     const oi = +opt.dataset.oi;
     if (e.target.classList.contains("opt-del")) { state.options.splice(oi, 1); renderOptions(); return; }
-    if (e.target.classList.contains("chip-tog")) {
-      const vi = +e.target.closest(".chip").dataset.vi;
-      state.options[oi].values[vi].active = !state.options[oi].values[vi].active;
-      e.target.closest(".chip").classList.toggle("on"); e.target.closest(".chip").classList.toggle("off");
-      updateGenPreview(); return;
-    }
     if (e.target.classList.contains("chip-del")) {
       const vi = +e.target.closest(".chip").dataset.vi;
       state.options[oi].values.splice(vi, 1); renderOptions(); return;
@@ -502,9 +538,9 @@
   $("#optionsList").addEventListener("keydown", (e) => {
     if (e.key !== "Enter" || !e.target.classList.contains("val-add")) return;
     e.preventDefault();
-    const opt = e.target.closest(".opt"); const oi = +opt.dataset.oi;
+    const oi = +e.target.closest(".opt").dataset.oi;
     const val = e.target.value.trim();
-    if (val) state.options[oi].values.push({ value: val, active: true });
+    if (val && !state.options[oi].values.includes(val)) state.options[oi].values.push(val);
     renderOptions();
     const fresh = document.querySelector(`.opt[data-oi="${oi}"] .val-add`); if (fresh) fresh.focus();
   });
@@ -521,17 +557,11 @@
     state.rules.splice(+rule.dataset.ri, 1); renderRules();
   });
 
-  // ---------- Drag & Drop: Regeln sortieren (Griff ⠿) ----------
+  // ---------- Drag & Drop: Regeln (vertikal) ----------
   let dragFrom = null;
   function clearDropMarks() {
     document.querySelectorAll("#rulesList .rule.drop-before, #rulesList .rule.drop-after")
       .forEach((r) => r.classList.remove("drop-before", "drop-after"));
-  }
-  function dropTargetInfo(e) {
-    const rule = e.target.closest(".rule");
-    if (!rule) return null;
-    const rect = rule.getBoundingClientRect();
-    return { ri: +rule.dataset.ri, rule, after: (e.clientY - rect.top) > rect.height / 2 };
   }
   $("#rulesList").addEventListener("dragstart", (e) => {
     const handle = e.target.closest(".drag-handle");
@@ -547,17 +577,22 @@
     e.preventDefault();
     e.dataTransfer.dropEffect = "move";
     clearDropMarks();
-    const t = dropTargetInfo(e);
-    if (t && t.ri !== dragFrom) t.rule.classList.add(t.after ? "drop-after" : "drop-before");
+    const rule = e.target.closest(".rule");
+    if (!rule || +rule.dataset.ri === dragFrom) return;
+    const rect = rule.getBoundingClientRect();
+    rule.classList.add((e.clientY - rect.top) > rect.height / 2 ? "drop-after" : "drop-before");
   });
   $("#rulesList").addEventListener("drop", (e) => {
     if (dragFrom === null) return;
     e.preventDefault();
-    const t = dropTargetInfo(e);
+    const rule = e.target.closest(".rule");
     clearDropMarks();
-    if (t && t.ri !== dragFrom) {
+    if (rule && +rule.dataset.ri !== dragFrom) {
+      const origDst = +rule.dataset.ri;
+      const rect = rule.getBoundingClientRect();
+      const after = (e.clientY - rect.top) > rect.height / 2;
       const [moved] = state.rules.splice(dragFrom, 1);
-      let dst = t.ri - (dragFrom < t.ri ? 1 : 0) + (t.after ? 1 : 0);
+      let dst = origDst - (dragFrom < origDst ? 1 : 0) + (after ? 1 : 0);
       dst = Math.max(0, Math.min(state.rules.length, dst));
       state.rules.splice(dst, 0, moved);
       renderRules();
@@ -569,12 +604,59 @@
     document.querySelectorAll("#rulesList .rule.dragging").forEach((r) => r.classList.remove("dragging"));
   });
 
-  $("#addOption").addEventListener("click", () => { state.options.push({ name: "", values: [], include: true }); renderOptions(); });
+  // ---------- Drag & Drop: Sortier-Leiste (horizontal) ----------
+  let sortFrom = null;
+  function clearSortMarks() {
+    document.querySelectorAll("#sortOrder .sort-chip.drop-before, #sortOrder .sort-chip.drop-after")
+      .forEach((c) => c.classList.remove("drop-before", "drop-after"));
+  }
+  $("#sortOrder").addEventListener("dragstart", (e) => {
+    const chip = e.target.closest(".sort-chip");
+    if (!chip) { e.preventDefault(); return; }
+    sortFrom = +chip.dataset.si;
+    chip.classList.add("dragging");
+    e.dataTransfer.effectAllowed = "move";
+    try { e.dataTransfer.setData("text/plain", String(sortFrom)); } catch (_) {}
+  });
+  $("#sortOrder").addEventListener("dragover", (e) => {
+    if (sortFrom === null) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    clearSortMarks();
+    const chip = e.target.closest(".sort-chip");
+    if (!chip || +chip.dataset.si === sortFrom) return;
+    const rect = chip.getBoundingClientRect();
+    chip.classList.add((e.clientX - rect.left) > rect.width / 2 ? "drop-after" : "drop-before");
+  });
+  $("#sortOrder").addEventListener("drop", (e) => {
+    if (sortFrom === null) return;
+    e.preventDefault();
+    const chip = e.target.closest(".sort-chip");
+    clearSortMarks();
+    if (chip && +chip.dataset.si !== sortFrom) {
+      const origDst = +chip.dataset.si;
+      const rect = chip.getBoundingClientRect();
+      const after = (e.clientX - rect.left) > rect.width / 2;
+      const [moved] = state.sortOrder.splice(sortFrom, 1);
+      let dst = origDst - (sortFrom < origDst ? 1 : 0) + (after ? 1 : 0);
+      dst = Math.max(0, Math.min(state.sortOrder.length, dst));
+      state.sortOrder.splice(dst, 0, moved);
+      renderSortBar();
+    }
+    sortFrom = null;
+  });
+  $("#sortOrder").addEventListener("dragend", () => {
+    sortFrom = null; clearSortMarks();
+    document.querySelectorAll("#sortOrder .sort-chip.dragging").forEach((c) => c.classList.remove("dragging"));
+  });
+
+  $("#addOption").addEventListener("click", () => { state.options.push({ name: "", values: [] }); renderOptions(); });
   $("#addRule").addEventListener("click", () => { state.rules.push({ cond: "", count: 2, manual: "" }); renderRules(); });
   $("#imgPerCombo").addEventListener("input", updateGenPreview);
   $("#defaultOption").addEventListener("input", (e) => { state.defaultOption = e.target.value.trim() || "Größe"; });
   $("#genReplace").addEventListener("click", () => generate(true));
   $("#genAppend").addEventListener("click", () => generate(false));
+  $("#sortRules").addEventListener("click", sortRulesByPriority);
   $("#importBtn").addEventListener("click", importString);
   $("#copyBtn").addEventListener("click", async () => {
     try { await navigator.clipboard.writeText($("#output").value); }
@@ -584,8 +666,9 @@
 
   // ---------- Beispiel-Vorlage (löschbar) ----------
   state.options = [
-    { name: "Größe", include: true, values: ["40x40cm", "50x50cm", "59x59cm", "70x70cm", "79x79cm"].map((v) => ({ value: v, active: true })) },
-    { name: "Farbe", include: true, values: [{ value: "Hellgrau", active: true }, { value: "Weiß", active: false }] },
+    { name: "Größe", values: ["40x40cm", "50x50cm", "59x59cm", "70x70cm", "79x79cm"] },
+    { name: "Farbe", values: ["Hellgrau", "Weiß"] },
+    { name: "Ecken", values: ["90° Kante", "Runde Ecken"] },
   ];
   renderOptions();
   renderRules();
