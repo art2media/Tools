@@ -144,7 +144,7 @@
 
   <section class="card">
     <h2><span class="badge">5</span> String importieren</h2>
-    <p class="hint">Bestehenden <code>_Galerie</code>-String einfügen → wird oben in die Felder geladen (vorhandene Vorlage wird ergänzt, nicht ersetzt). Feste Indizes werden automatisch erkannt (alles, was die fortlaufende Nummerierung überschreitet).</p>
+    <p class="hint">Bestehenden <code>_Galerie</code>-String einfügen → wird oben in die Felder geladen (vorhandene Vorlage wird ergänzt, nicht ersetzt). Feste Indizes werden automatisch erkannt (alles, was die fortlaufende Nummerierung überschreitet). Ein umschließendes <code>return '…';</code> (Anführungszeichen, Semikolon) wird automatisch entfernt.</p>
     <textarea id="importText" rows="4" placeholder="Größe=40x40cm&Farbe=Hellgrau:1,2;Farbe=Weiß&Deine Ecken=Runde Ecken:21;…"></textarea>
     <button id="importBtn" class="btn">↑ Übernehmen</button>
   </section>
@@ -400,8 +400,22 @@
     renderRules();
   }
 
+  // Import tolerant machen: ein umschließendes  return '…';  wird entfernt
+  // (führendes "return", umschließende ' " ` und abschließende Semikolons).
+  function sanitizeImport(raw) {
+    let s = String(raw).trim();
+    s = s.replace(/^return\b\s*/i, "");   // führendes "return"
+    s = s.replace(/;+\s*$/, "");          // abschließende Semikolons (JS-Statement-Ende)
+    s = s.trim();
+    if (s.length >= 2) {                  // umschließende Anführungszeichen ' " ` entfernen
+      const q = s[0];
+      if ((q === "'" || q === '"' || q === "`") && s[s.length - 1] === q) s = s.slice(1, -1);
+    }
+    return s.trim();
+  }
+
   function importString() {
-    const raw = $("#importText").value.trim();
+    const raw = sanitizeImport($("#importText").value);
     if (!raw) { alert("Bitte zuerst einen String einfügen."); return; }
     const rules = parseConfigString(raw);
     if (!rules.length) { alert("Konnte keine Regeln erkennen. Format: Name=Wert&Name=Wert:1,2;…"); return; }
