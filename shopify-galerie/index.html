@@ -179,7 +179,7 @@
 
   <section class="card">
     <h2><span class="badge">5</span> String importieren</h2>
-    <p class="hint">Bestehenden <code>_Galerie</code>-String einfügen → wird oben in die Felder geladen (vorhandene Vorlage wird ergänzt, nicht ersetzt). Feste Indizes werden automatisch erkannt (alles, was die fortlaufende Nummerierung überschreitet). Ein umschließendes <code>return '…';</code> (Anführungszeichen, Semikolon) wird automatisch entfernt.</p>
+    <p class="hint">Bestehenden <code>_Galerie</code>-String einfügen → wird oben in die Felder geladen; die Optionen-Vorlage wird dabei <b>exakt aus dem String neu aufgebaut</b> (ersetzt vorhandene Optionen/Werte). Feste Indizes werden automatisch erkannt (alles, was die fortlaufende Nummerierung überschreitet). Ein umschließendes <code>return '…';</code> (Anführungszeichen, Semikolon) wird automatisch entfernt.</p>
     <textarea id="importText" rows="4" placeholder="Größe=40x40cm&Farbe=Hellgrau:1,2;Farbe=Weiß&Ecken=Runde Ecken:21;…"></textarea>
     <button id="importBtn" class="btn">↑ Übernehmen</button>
   </section>
@@ -322,14 +322,17 @@
     return arrays.reduce((acc, arr) => acc.flatMap((a) => arr.map((x) => [...a, x])), [[]]);
   }
 
-  // Optionen aus importierten Regeln in die Vorlage einmischen (ergänzen)
-  function mergeOptionsFromRules(rules) {
+  // Optionen-Vorlage exakt aus den importierten Regeln aufbauen (ERSETZT die alte Vorlage,
+  // damit keine Standard-/Altwerte übrig bleiben). Reihenfolge = erstes Auftreten im String.
+  function optionsFromRules(rules) {
+    const opts = [];
     rules.forEach((r) => parseConditions(r.cond).forEach(({ name, value }) => {
       if (!name) return;
-      let opt = state.options.find((o) => o.name.trim() === name.trim());
-      if (!opt) { opt = { name, values: [] }; state.options.push(opt); }
+      let opt = opts.find((o) => o.name === name);
+      if (!opt) { opt = { name, values: [] }; opts.push(opt); }
       if (value !== "" && !opt.values.includes(value)) opt.values.push(value);
     }));
+    return opts;
   }
 
   // ---------- Render: Optionen ----------
@@ -515,7 +518,8 @@
     const rules = parseConfigString(raw);
     if (!rules.length) { alert("Konnte keine Regeln erkennen. Format: Name=Wert&Name=Wert:1,2;…"); return; }
     state.rules = rules;
-    mergeOptionsFromRules(rules);
+    state.options = optionsFromRules(rules);   // Vorlage exakt aus dem Import (ersetzt Standard-/Altwerte)
+    state.sortOrder = [];                        // Gruppier-Reihenfolge frisch aus den Optionen ableiten
     renderOptions();
     renderRules();
     $("#importText").value = "";
