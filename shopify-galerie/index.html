@@ -172,7 +172,7 @@
     <p class="hint">Bedingungen je Regel als <b>farbige Chips</b> (eine Farbe pro Option). <b>Bulk-Sortierung:</b> Options-Chips unten in Prioritäts-Reihenfolge ziehen (links = äußerste Gruppe, ändert sich am langsamsten) und <b>„Regeln sortieren"</b> klicken. Danach einzelne Regeln am Griff <b>⠿</b> per Drag&amp;Drop feinjustieren. Die Reihenfolge bestimmt die automatischen Bild-Nummern.<br>
     <b>+ feste:</b> optionale feste Bild-Nummern (z. B. am Galerie-<b>Ende</b>), die zusätzlich gezeigt werden; mehrere Regeln dürfen dieselbe nutzen.</p>
     <div class="sortbar">
-      <span class="sortbar-label">Gruppieren nach <span class="sortbar-sub">(links = äußerste Gruppe)</span>:</span>
+      <span class="sortbar-label">Gruppieren nach <span class="sortbar-sub">(= Options-Reihenfolge; links = äußerste Gruppe)</span>:</span>
       <div id="sortOrder" class="sort-chips"></div>
       <button id="sortRules" class="btn mini">Regeln sortieren</button>
     </div>
@@ -223,8 +223,7 @@
   // ---------- State ----------
   const state = {
     defaultOption: "Größe",
-    options: [],    // {name, values:[string]}
-    sortOrder: [],  // [optionName] – Gruppierungs-Priorität, außen -> innen
+    options: [],    // {name, values:[string], hue} – Reihenfolge = Gruppier-Priorität (außen -> innen)
     rules: [],      // {cond, count, manual}
   };
 
@@ -271,11 +270,13 @@
     });
   }
 
-  // Gruppierungs-Reihenfolge mit den aktuellen Optionsnamen abgleichen
-  function syncSortOrder() {
-    const names = optionNames();
-    state.sortOrder = state.sortOrder.filter((n) => names.includes(n));
-    names.forEach((n) => { if (!state.sortOrder.includes(n)) state.sortOrder.push(n); });
+  // Häufigste Auto-Bild-Anzahl (>0) über die Regeln – für "Bilder pro Kombination" beim Import
+  function modeOfCounts(rules) {
+    const freq = {};
+    rules.forEach((r) => { const c = Math.max(0, parseInt(r.count, 10) || 0); if (c > 0) freq[c] = (freq[c] || 0) + 1; });
+    let best = null, bestN = 0;
+    for (const c in freq) { if (freq[c] > bestN) { bestN = freq[c]; best = +c; } }
+    return best;
   }
 
   // String -> Regeln [{cond, count, manual}]; führender fortlaufender Block = automatisch, Rest = fest
@@ -376,12 +377,12 @@
 
   // ---------- Render: Sortier-Leiste ----------
   function renderSortBar() {
-    syncSortOrder();
     const host = $("#sortOrder");
-    if (!state.sortOrder.length) { host.innerHTML = `<span class="cond-empty">(keine Optionen)</span>`; return; }
-    host.innerHTML = state.sortOrder.map((name, si) => `
-      <span class="sort-chip" data-si="${si}" draggable="true" style="--h:${optionHue(name)}">
-        <span class="sort-grip">⠿</span>${esc(name)}
+    const named = state.options.map((o, oi) => ({ o, oi })).filter((x) => x.o.name.trim());
+    if (!named.length) { host.innerHTML = `<span class="cond-empty">(keine Optionen)</span>`; return; }
+    host.innerHTML = named.map(({ o, oi }) => `
+      <span class="sort-chip" data-oi="${oi}" draggable="true" style="--h:${optionHue(o.name)}">
+        <span class="sort-grip">⠿</span>${esc(o.name.trim())}
       </span>`).join("");
   }
 
@@ -412,8 +413,7 @@
 
   // ---------- Live-Ausgabe + Vorschau + Warnungen ----------
   function updateGenPreview() {
-    syncSortOrder();
-    const counts = state.sortOrder
+    const counts = optionNames()
       .map((name) => { const o = state.options.find((x) => x.name.trim() === name); return o ? o.values.length : 0; })
       .filter((c) => c > 0);
     const per = Math.max(0, parseInt($("#imgPerCombo").value, 10) || 0);
@@ -478,8 +478,7 @@
 
   // ---------- Aktionen ----------
   function generate(replace) {
-    syncSortOrder();
-    const opts = state.sortOrder
+    const opts = optionNames()
       .map((name) => state.options.find((o) => o.name.trim() === name))
       .filter((o) => o && o.values.length)
       .map((o) => ({ name: o.name.trim(), values: o.values.slice() }));
@@ -499,8 +498,7 @@
   // lässt Bild-Anzahl & feste Indizes je Regel unangetastet). Drag&Drop kann danach feinjustieren.
   function sortRulesByPriority() {
     if (!state.rules.length) return;
-    syncSortOrder();
-    const order = state.sortOrder.slice();
+    const order = optionNames();
     const valIndex = {};
     state.options.forEach((o) => { const m = {}; o.values.forEach((v, i) => { m[v] = i; }); valIndex[o.name.trim()] = m; });
     const BIG = Number.MAX_SAFE_INTEGER;
@@ -536,7 +534,8 @@
     if (!rules.length) { alert("Konnte keine Regeln erkennen. Format: Name=Wert&Name=Wert:1,2;…"); return; }
     state.rules = rules;
     state.options = optionsFromRules(rules);   // Vorlage exakt aus dem Import (ersetzt Standard-/Altwerte)
-    state.sortOrder = [];                        // Gruppier-Reihenfolge frisch aus den Optionen ableiten
+    const m = modeOfCounts(rules);              // "Bilder pro Kombination" an den Import angleichen
+    if (m != null) $("#imgPerCombo").value = m;
     renderOptions();
     renderRules();
     $("#importText").value = "";
@@ -705,7 +704,7 @@
   $("#sortOrder").addEventListener("dragstart", (e) => {
     const chip = e.target.closest(".sort-chip");
     if (!chip) { e.preventDefault(); return; }
-    sortFrom = +chip.dataset.si;
+    sortFrom = +chip.dataset.oi;
     chip.classList.add("dragging");
     e.dataTransfer.effectAllowed = "move";
     try { e.dataTransfer.setData("text/plain", String(sortFrom)); } catch (_) {}
@@ -716,7 +715,7 @@
     e.dataTransfer.dropEffect = "move";
     clearSortMarks();
     const chip = e.target.closest(".sort-chip");
-    if (!chip || +chip.dataset.si === sortFrom) return;
+    if (!chip || +chip.dataset.oi === sortFrom) return;
     const rect = chip.getBoundingClientRect();
     chip.classList.add((e.clientX - rect.left) > rect.width / 2 ? "drop-after" : "drop-before");
   });
@@ -725,15 +724,15 @@
     e.preventDefault();
     const chip = e.target.closest(".sort-chip");
     clearSortMarks();
-    if (chip && +chip.dataset.si !== sortFrom) {
-      const origDst = +chip.dataset.si;
+    if (chip && +chip.dataset.oi !== sortFrom) {
+      const origDst = +chip.dataset.oi;
       const rect = chip.getBoundingClientRect();
       const after = (e.clientX - rect.left) > rect.width / 2;
-      const [moved] = state.sortOrder.splice(sortFrom, 1);
+      const [moved] = state.options.splice(sortFrom, 1);
       let dst = origDst - (sortFrom < origDst ? 1 : 0) + (after ? 1 : 0);
-      dst = Math.max(0, Math.min(state.sortOrder.length, dst));
-      state.sortOrder.splice(dst, 0, moved);
-      renderSortBar();
+      dst = Math.max(0, Math.min(state.options.length, dst));
+      state.options.splice(dst, 0, moved);
+      renderOptions();
     }
     sortFrom = null;
   });
