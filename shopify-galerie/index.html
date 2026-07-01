@@ -39,15 +39,28 @@
   .btn.mini:hover{filter:brightness(1.06)}
 
   /* Optionen */
-  .opt{border:1px solid var(--line);border-left:4px solid hsl(var(--h,210) 60% 50%);border-radius:10px;padding:12px;margin-bottom:10px}
-  .opt-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-  .opt-head .opt-name{flex:1;min-width:160px;font-weight:600}
+  .opt{border:1px solid var(--line);border-left:4px solid hsl(var(--h,210) 60% 50%);border-radius:10px;padding:12px;margin-bottom:10px;background:var(--card)}
+  .opt.dragging{opacity:.45}
+  .opt.drop-before{box-shadow:0 -3px 0 -1px var(--accent)}
+  .opt.drop-after{box-shadow:0 3px 0 -1px var(--accent)}
+  .opt-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .opt-grip{cursor:grab;color:var(--muted);font-size:16px;line-height:1;user-select:none;padding:2px 4px;border-radius:5px}
+  .opt-grip:hover{background:var(--chip);color:var(--ink)}
+  .opt-grip:active{cursor:grabbing}
+  .opt-head .opt-name{flex:1;min-width:150px;font-weight:600}
   .opt-del{margin-left:auto}
   .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;align-items:center}
-  .chip{display:inline-flex;align-items:center;gap:3px;border-radius:999px;padding:3px 4px 3px 11px;
+  .chip{display:inline-flex;align-items:center;gap:1px;border-radius:999px;padding:2px 5px 2px 6px;
     background:hsl(var(--h,210) 60% 95%);border:1px solid hsl(var(--h,210) 50% 78%)}
-  .chip .chip-val{font-size:13px;font-weight:600;color:hsl(var(--h,210) 52% 34%)}
-  .chip .chip-del{border:0;background:transparent;color:hsl(var(--h,210) 38% 48%);cursor:pointer;padding:0 6px 0 2px;font-size:14px;line-height:1}
+  .chip.dragging{opacity:.45}
+  .chip.drop-before{box-shadow:-3px 0 0 -1px var(--accent)}
+  .chip.drop-after{box-shadow:3px 0 0 -1px var(--accent)}
+  .chip-grip{cursor:grab;color:hsl(var(--h,210) 40% 55%);font-size:11px;line-height:1;user-select:none;padding:0 1px}
+  .chip-grip:active{cursor:grabbing}
+  .chip .chip-val{field-sizing:content;min-width:3ch;max-width:28ch;border:0;background:transparent;padding:2px;border-radius:5px;
+    font-size:13px;font-weight:600;color:hsl(var(--h,210) 52% 34%)}
+  .chip .chip-val:focus{outline:2px solid hsl(var(--h,210) 50% 62%);outline-offset:0}
+  .chip .chip-del{border:0;background:transparent;color:hsl(var(--h,210) 38% 48%);cursor:pointer;padding:0 4px 0 2px;font-size:14px;line-height:1}
   .chip .chip-del:hover{color:var(--err)}
   .val-add{width:150px;font-size:13px;padding:4px 9px;border-radius:999px}
   .defopt{display:block;margin-top:14px;color:var(--muted);font-size:13px}
@@ -104,7 +117,7 @@
   @media (prefers-color-scheme: dark){
     .chip,.cond-chip,.sort-chip{background:hsl(var(--h,210) 42% 18%);border-color:hsl(var(--h,210) 35% 34%)}
     .cond-chip,.sort-chip,.chip .chip-val{color:hsl(var(--h,210) 70% 78%)}
-    .chip .chip-del{color:hsl(var(--h,210) 45% 62%)}
+    .chip .chip-del,.chip-grip{color:hsl(var(--h,210) 45% 62%)}
   }
 
   /* Ausgabe */
@@ -134,7 +147,7 @@
 
   <section class="card">
     <h2><span class="badge">1</span> Optionen-Vorlage</h2>
-    <p class="hint">Optionen einmal anlegen: Name + Werte (Wert tippen &amp; <b>Enter</b>, <b>×</b> löscht). Die <b>Farbe</b> kennzeichnet die Option überall im Tool – in den Regel-Chips und in der Sortier-Leiste.</p>
+    <p class="hint">Optionen anlegen: Name + Werte (Wert tippen &amp; <b>Enter</b>). Werte sind <b>direkt editierbar</b>; mit dem Griff <b>⠿</b> lassen sich Optionen <b>und</b> Werte per Drag&amp;Drop sortieren, <b>×</b> löscht. Die <b>Farbe</b> kennzeichnet die Option überall im Tool.</p>
     <div id="optionsList"></div>
     <button id="addOption" class="btn ghost">+ Option</button>
     <label class="defopt">Standard-Option für Werte ohne „Name="&nbsp;(nur beim Import des alten Formats):
@@ -226,26 +239,23 @@
       .filter((n, i, a) => a.indexOf(n) === i);
   }
 
-  // Hash-Fallback-Farbe (für Bedingungen, deren Option nicht in der Vorlage steht)
-  const HUES = [210, 150, 28, 275, 340, 190, 95, 310, 50, 168];
+  // Feste, gut unterscheidbare Farbpalette. Jede Option bekommt bei Erstellung eine STABILE
+  // Farbe (opt.hue) -> ändert sich beim Umsortieren nicht. Fallback (Hash) nur für Bedingungen,
+  // deren Option nicht (mehr) in der Vorlage steht.
+  const HUE_PALETTE = [210, 32, 145, 275, 95, 330, 185, 55, 250, 120];
   function hueFor(name) {
     const s = String(name || "");
     let h = 5381;
     for (let i = 0; i < s.length; i++) h = ((h * 33) ^ s.charCodeAt(i)) >>> 0;
-    return HUES[h % HUES.length];
+    return HUE_PALETTE[h % HUE_PALETTE.length];
   }
-  // Farbe (Hue) je Option: gleichmäßig übers Spektrum nach Position in der Vorlage
-  // -> in Vorlage, Regel-Chips UND Sortier-Leiste identisch und gut unterscheidbar.
-  function optionNames() {
-    const u = [];
-    for (const o of state.options) { const n = o.name.trim(); if (n && !u.includes(n)) u.push(n); }
-    return u;
+  function pickHue(existing) {
+    const used = existing.map((o) => o.hue).filter((h) => h != null);
+    return HUE_PALETTE.find((h) => !used.includes(h)) ?? HUE_PALETTE[used.length % HUE_PALETTE.length];
   }
   function optionHue(name) {
-    const u = optionNames();
-    const i = u.indexOf(String(name).trim());
-    if (i === -1) return hueFor(name);
-    return Math.round((210 + i * 360 / Math.max(u.length, 1)) % 360);
+    const o = state.options.find((x) => x.name.trim() === String(name).trim());
+    return (o && o.hue != null) ? o.hue : hueFor(name);
   }
   // cond-String -> rohe Tokens mit Optionsname (für farbige, nicht editierbare Chips)
   function condTokens(cond) {
@@ -329,7 +339,7 @@
     rules.forEach((r) => parseConditions(r.cond).forEach(({ name, value }) => {
       if (!name) return;
       let opt = opts.find((o) => o.name === name);
-      if (!opt) { opt = { name, values: [] }; opts.push(opt); }
+      if (!opt) { opt = { name, values: [], hue: pickHue(opts) }; opts.push(opt); }
       if (value !== "" && !opt.values.includes(value)) opt.values.push(value);
     }));
     return opts;
@@ -341,13 +351,15 @@
     host.innerHTML = state.options.map((o, oi) => `
       <div class="opt" data-oi="${oi}" style="--h:${optionHue(o.name)}">
         <div class="opt-head">
+          <span class="opt-grip" draggable="true" title="Option ziehen zum Sortieren">⠿</span>
           <input class="opt-name" value="${esc(o.name)}" placeholder="Optionsname, z. B. Größe">
           <button class="btn mini opt-del" title="Option löschen">🗑</button>
         </div>
         <div class="chips">
           ${o.values.map((v, vi) => `
             <span class="chip" data-vi="${vi}">
-              <span class="chip-val">${esc(v)}</span>
+              <span class="chip-grip" draggable="true" title="Wert ziehen zum Sortieren">⠿</span>
+              <input class="chip-val" value="${esc(v)}" aria-label="Wert bearbeiten">
               <button class="chip-del" title="Wert löschen">×</button>
             </span>`).join("")}
           <input class="val-add" placeholder="+ Wert (Enter)">
@@ -528,7 +540,11 @@
   // ---------- Event-Wiring (Delegation auf stabile Container) ----------
   $("#optionsList").addEventListener("input", (e) => {
     const opt = e.target.closest(".opt"); if (!opt) return;
-    if (e.target.classList.contains("opt-name")) { state.options[+opt.dataset.oi].name = e.target.value; updateOutput(); }
+    const oi = +opt.dataset.oi;
+    if (e.target.classList.contains("opt-name")) { state.options[oi].name = e.target.value; updateOutput(); }
+    else if (e.target.classList.contains("chip-val")) {
+      state.options[oi].values[+e.target.closest(".chip").dataset.vi] = e.target.value; updateOutput();
+    }
   });
   $("#optionsList").addEventListener("click", (e) => {
     const opt = e.target.closest(".opt"); if (!opt) return;
@@ -540,13 +556,80 @@
     }
   });
   $("#optionsList").addEventListener("keydown", (e) => {
-    if (e.key !== "Enter" || !e.target.classList.contains("val-add")) return;
+    if (e.key !== "Enter") return;
+    if (e.target.classList.contains("chip-val")) { e.preventDefault(); e.target.blur(); return; }
+    if (!e.target.classList.contains("val-add")) return;
     e.preventDefault();
     const oi = +e.target.closest(".opt").dataset.oi;
     const val = e.target.value.trim();
     if (val && !state.options[oi].values.includes(val)) state.options[oi].values.push(val);
     renderOptions();
     const fresh = document.querySelector(`.opt[data-oi="${oi}"] .val-add`); if (fresh) fresh.focus();
+  });
+
+  // ---------- Drag & Drop: Optionen (vertikal) + Werte je Option (horizontal) ----------
+  let optFrom = null;   // Options-Index
+  let valFrom = null;   // {oi, vi} eines Werts
+  function clearOptMarks() {
+    document.querySelectorAll("#optionsList .opt.drop-before, #optionsList .opt.drop-after, #optionsList .chip.drop-before, #optionsList .chip.drop-after")
+      .forEach((el) => el.classList.remove("drop-before", "drop-after"));
+  }
+  $("#optionsList").addEventListener("dragstart", (e) => {
+    if (e.target.closest(".chip-grip")) {
+      const chip = e.target.closest(".chip"), opt = e.target.closest(".opt");
+      valFrom = { oi: +opt.dataset.oi, vi: +chip.dataset.vi }; optFrom = null;
+      chip.classList.add("dragging");
+    } else if (e.target.closest(".opt-grip")) {
+      const opt = e.target.closest(".opt");
+      optFrom = +opt.dataset.oi; valFrom = null;
+      opt.classList.add("dragging");
+    } else { e.preventDefault(); return; }
+    e.dataTransfer.effectAllowed = "move";
+    try { e.dataTransfer.setData("text/plain", "x"); } catch (_) {}
+  });
+  $("#optionsList").addEventListener("dragover", (e) => {
+    if (optFrom === null && valFrom === null) return;
+    e.preventDefault(); e.dataTransfer.dropEffect = "move"; clearOptMarks();
+    if (valFrom !== null) {
+      const chip = e.target.closest(".chip"), opt = e.target.closest(".opt");
+      if (!chip || !opt || +opt.dataset.oi !== valFrom.oi || +chip.dataset.vi === valFrom.vi) return;
+      const r = chip.getBoundingClientRect();
+      chip.classList.add((e.clientX - r.left) > r.width / 2 ? "drop-after" : "drop-before");
+    } else {
+      const opt = e.target.closest(".opt");
+      if (!opt || +opt.dataset.oi === optFrom) return;
+      const r = opt.getBoundingClientRect();
+      opt.classList.add((e.clientY - r.top) > r.height / 2 ? "drop-after" : "drop-before");
+    }
+  });
+  $("#optionsList").addEventListener("drop", (e) => {
+    if (optFrom === null && valFrom === null) return;
+    e.preventDefault(); clearOptMarks();
+    if (valFrom !== null) {
+      const chip = e.target.closest(".chip"), opt = e.target.closest(".opt");
+      if (chip && opt && +opt.dataset.oi === valFrom.oi && +chip.dataset.vi !== valFrom.vi) {
+        const arr = state.options[valFrom.oi].values, origDst = +chip.dataset.vi;
+        const r = chip.getBoundingClientRect(), after = (e.clientX - r.left) > r.width / 2;
+        const [m] = arr.splice(valFrom.vi, 1);
+        let dst = origDst - (valFrom.vi < origDst ? 1 : 0) + (after ? 1 : 0);
+        arr.splice(Math.max(0, Math.min(arr.length, dst)), 0, m);
+        renderOptions();
+      }
+    } else {
+      const opt = e.target.closest(".opt");
+      if (opt && +opt.dataset.oi !== optFrom) {
+        const origDst = +opt.dataset.oi, r = opt.getBoundingClientRect(), after = (e.clientY - r.top) > r.height / 2;
+        const [m] = state.options.splice(optFrom, 1);
+        let dst = origDst - (optFrom < origDst ? 1 : 0) + (after ? 1 : 0);
+        state.options.splice(Math.max(0, Math.min(state.options.length, dst)), 0, m);
+        renderOptions();
+      }
+    }
+    optFrom = null; valFrom = null;
+  });
+  $("#optionsList").addEventListener("dragend", () => {
+    optFrom = null; valFrom = null; clearOptMarks();
+    document.querySelectorAll("#optionsList .opt.dragging, #optionsList .chip.dragging").forEach((el) => el.classList.remove("dragging"));
   });
 
   $("#rulesList").addEventListener("input", (e) => {
@@ -654,7 +737,7 @@
     document.querySelectorAll("#sortOrder .sort-chip.dragging").forEach((c) => c.classList.remove("dragging"));
   });
 
-  $("#addOption").addEventListener("click", () => { state.options.push({ name: "", values: [] }); renderOptions(); });
+  $("#addOption").addEventListener("click", () => { state.options.push({ name: "", values: [], hue: pickHue(state.options) }); renderOptions(); });
   $("#addRule").addEventListener("click", () => { state.rules.push({ cond: "", count: 2, manual: "" }); renderRules(); });
   $("#imgPerCombo").addEventListener("input", updateGenPreview);
   $("#defaultOption").addEventListener("input", (e) => { state.defaultOption = e.target.value.trim() || "Größe"; });
@@ -670,9 +753,9 @@
 
   // ---------- Beispiel-Vorlage (löschbar) ----------
   state.options = [
-    { name: "Größe", values: ["40x40cm", "50x50cm", "59x59cm", "70x70cm", "79x79cm"] },
-    { name: "Farbe", values: ["Hellgrau", "Weiß"] },
-    { name: "Ecken", values: ["90° Kante", "Runde Ecken"] },
+    { name: "Größe", values: ["40x40cm", "50x50cm", "59x59cm", "70x70cm", "79x79cm"], hue: 210 },
+    { name: "Farbe", values: ["Hellgrau", "Weiß"], hue: 32 },
+    { name: "Ecken", values: ["90° Kante", "Runde Ecken"], hue: 145 },
   ];
   renderOptions();
   renderRules();
