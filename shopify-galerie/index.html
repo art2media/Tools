@@ -253,6 +253,11 @@
     const used = existing.map((o) => o.hue).filter((h) => h != null);
     return HUE_PALETTE.find((h) => !used.includes(h)) ?? HUE_PALETTE[used.length % HUE_PALETTE.length];
   }
+  function optionNames() {
+    const u = [];
+    for (const o of state.options) { const n = o.name.trim(); if (n && !u.includes(n)) u.push(n); }
+    return u;
+  }
   function optionHue(name) {
     const o = state.options.find((x) => x.name.trim() === String(name).trim());
     return (o && o.hue != null) ? o.hue : hueFor(name);
